@@ -363,6 +363,7 @@ int main() {
 				}
 
 				//Ÿle jest zmieniana m_length przy append naprawione
+
 				if (s.at(s.length() -1) == ';') {
 					s.pop_back();
 				}
