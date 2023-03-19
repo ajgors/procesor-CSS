@@ -26,7 +26,7 @@ struct atrybut {
 
 	friend std::ostream& operator<<(std::ostream& os, const atrybut& obj)
 	{
-		os << obj.nazwa << " " << obj.wartosc;
+		os << obj.nazwa << ":" << obj.wartosc;
 		return os;
 	}
 
@@ -272,7 +272,9 @@ public:
 	};
 };
 
-
+// zle zapisuje margin : 4p 4p 4p 4p
+// robi margin : 4p, 4p:4p
+// while char != ; or } wczytuj dalej tmp.apped -> 4p -> 4p.append 4p = 4p 4p
 
 
 int main() {
@@ -340,16 +342,33 @@ int main() {
 					if (tmp == "}") break;
 					tmp.pop_back();
 				}
+				
+				String s;
+
 				std::cin >> value;
-				if (value == "}") break;
-				if (value.at(value.length() -1) == '}') {
-					value.pop_back();
+				s.append(value.c_str());
+
+				while (value.at(value.length() - 1) != ';' && value.at(value.length() - 1) != '}') {
+					std::cin >> value;
+					s.append(" ");
+					s.append(value.c_str());
+
+				}
+
+				std::cout << s << std::endl;;
+
+				if (s.at(s.length() -1) == '}') {
+					s.pop_back();
 					running = false;
 				}
-				
-				value.pop_back();
+
+				//Ÿle jest zmieniana m_length przy append naprawione
+				if (s.at(s.length() -1) == ';') {
+					s.pop_back();
+				}
+
 				if (tmp != "" && value != "") {
-					block.addAtribute(atrybut(tmp, value));
+					block.addAtribute(atrybut(tmp, s));
 				}
 				tmp = "";
 			}

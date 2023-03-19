@@ -106,17 +106,17 @@ public:
 
 		size_t length = strlen(to_append);
 
-		size_t new_length = m_length + length + 1;
+		size_t new_length = m_length + length;
 
-		char* new_string = new char[new_length];
-		std::memset(new_string, 0, sizeof(char) * new_length);
+		char* new_string = new char[new_length + 1];
+		std::memset(new_string, 0, new_length + 1);
 
 		if (new_string) {
 
 			if (m_length > 0) {
-				strcat_s(new_string, sizeof(char) * new_length, m_string);
+				strcat_s(new_string, new_length + 1, m_string);
 			}
-			strcat_s(new_string, sizeof(char) * new_length, to_append);
+			strcat_s(new_string, new_length + 1, to_append);
 			delete[] m_string;
 			m_string = new_string;
 			m_length = new_length;
