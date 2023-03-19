@@ -26,7 +26,7 @@ struct atrybut {
 
 	friend std::ostream& operator<<(std::ostream& os, const atrybut& obj)
 	{
-		os << obj.nazwa/* << " " << obj.wartosc*/;
+		os << obj.nazwa << " " << obj.wartosc;
 		return os;
 	}
 
@@ -149,28 +149,52 @@ public:
 	}
 };
 
+
+struct Node {
+	
+
+public:
+	Block* blocks;
+	Node* next;
+	Node* prev;
+	size_t size;
+
+	Node()
+		:blocks(new Block[ROZ]), next(nullptr), prev(nullptr), size(0)
+	{
+	}
+
+};
+
 //template<typename T>
 class ListLinked {
 
 private:
-	size_t size;
+	Node* head;
 public:
-	Block* blocks;
-	ListLinked* next;
-	ListLinked* prev;
 
 	ListLinked()
-		:blocks(new Block[ROZ]), size(0), next(nullptr), prev(nullptr)
+		:head(nullptr)
 	{
 	}
 
+	void addAtEnd(Block block) {
+		Node* temp = new Node;
+		if (head == nullptr) {
+			head = new Node;
+		}
+
+	}
+
 	void addBlock(Block block) {
-		
-		ListLinked* temp = this;
-		
+		Node* temp = head;
+		if (head == nullptr) {
+			head = new Node;
+			temp = head;
+		}
 		while (temp->size >= ROZ) {
 			if (temp->next == nullptr) {
-				ListLinked* t = new ListLinked();
+				Node* t = new Node();
 				t->prev = temp;
 				temp->next = t;
 				temp = t;
@@ -193,7 +217,7 @@ public:
 	}
 
 	void printBlocks() {
-		ListLinked* temp = this;
+		Node* temp = head;
 		while (temp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
 				if (temp->blocks[i].used == true) {
@@ -205,21 +229,22 @@ public:
 	}
 
 	~ListLinked() {
-		delete[] blocks;
+		Node* temp = head;
+		while (temp != nullptr) {
+			delete[] temp->blocks;
+			temp = temp->next;
+		}
 	}
 
-	size_t getSize() {
-		return size;
-	}
 
 	//liczba sekcji
 	size_t numberOfSections() {
 		size_t result = 0;
 
-		ListLinked* tmp = this;
+		Node* tmp = head;
 
 		while (tmp != nullptr) {
-			result += tmp->getSize();
+			result += head->size;
 			tmp = tmp->next;
 		}
 
@@ -228,19 +253,19 @@ public:
 
 	size_t numberOfSelectorsInSection(int n) {
 		int current = 0;
-		ListLinked* tmp = this;
+		Node* tmp = head;
 
 		while (n > ROZ) {
 			tmp = tmp->next;
-			n -= tmp->getSize();
+			n -= tmp->size;
 		}
 
 		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (blocks[i].used == true) {
+			if (tmp->blocks[i].used == true) {
 				k++;
 			}
 			if (k == n) {
-				return blocks[k-1].getSelectorLen();
+				return tmp->blocks[k-1].getSelectorLen();
 			}
 		}
 		return 0;
@@ -307,7 +332,7 @@ int main() {
 			while (tmp != "}" && value != "}" && running ) {
 	
 				if (tmp != "") {
-					//tmp = tmp.substr(1);
+					tmp.slice(1);
 					tmp.pop_back();
 				}
 				else {
