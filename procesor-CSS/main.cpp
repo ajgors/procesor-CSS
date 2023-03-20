@@ -76,7 +76,9 @@ public:
 	}
 
 	~String() {
-		delete[] m_string;
+		if (m_string != nullptr) {
+			delete[] m_string;
+		}
 	}
 
 	//copy constructor
@@ -248,7 +250,7 @@ struct atrybut {
 
 	friend std::ostream& operator<<(std::ostream& os, const atrybut& obj)
 	{
-		os << obj.property << ":" << obj.value;
+		os << obj.property << " : " << obj.value;
 		return os;
 	}
 };
@@ -268,7 +270,7 @@ public:
 	{
 	}
 
-	NodeList(T data)
+	NodeList(const T& data)
 		: next(nullptr), data(data)
 	{
 	}
@@ -288,6 +290,16 @@ public:
 	{
 	}
 
+	~ListSingleLinked() {
+		NodeList<T>* temp = head;
+		while (temp != nullptr) {
+			NodeList<T>* next = temp->next;
+			delete temp;
+			temp = next;
+		}
+		head = nullptr;
+	}
+
 	//git
 	void add(T data) {
 
@@ -295,7 +307,7 @@ public:
 			head = new NodeList<T>(data);
 		}
 		else {
-			NodeList<T>* temp = head;	
+			NodeList<T>* temp = head;
 			while (temp->next != nullptr) {
 				temp = temp->next;
 			}
@@ -325,17 +337,43 @@ public:
 		return len;
 	}
 
-	//nm czy git
-	atrybut* findByNazwa(atrybut a) {
-		NodeList<atrybut>* temp = head;
+	T* findByNazwa(T a);
+
+	T* getElementByNumber(int number) {
+		NodeList<T>* temp = head;
+		int i = 1;
 		while (temp != nullptr) {
-			if (temp->data.property == a.property)
-				return &(temp->data);
+			if (i == number)
+				return &temp->data;
 			temp = temp->next;
+			i++;
 		}
+
 		return nullptr;
 	}
 };
+
+template<>
+atrybut* ListSingleLinked<atrybut>::findByNazwa(atrybut a) {
+	NodeList<atrybut>* temp = head;
+	while (temp != nullptr) {
+		if (temp->data.property == a.property)
+			return &temp->data;
+		temp = temp->next;
+	}
+	return nullptr;
+}
+
+template<>
+String* ListSingleLinked<String>::findByNazwa(String a) {
+	NodeList<String>* temp = head;
+	while (temp != nullptr) {
+		if (temp->data == a)
+			return &temp->data;
+		temp = temp->next;
+	}
+	return nullptr;
+}
 
 
 class Block {
@@ -351,6 +389,11 @@ public:
 	{
 	}
 
+	Block(const Block& other)
+		: selektor(other.selektor), atrybuty(other.atrybuty), used(other.used)
+	{
+	}
+
 	Block& operator=(const Block& b) {
 		selektor = b.selektor;
 		atrybuty = b.atrybuty;
@@ -359,14 +402,15 @@ public:
 
 	void addAtribute(atrybut a) {
 		//sprawdzic czy juz taki atrybut jest jak tak to zamienic
-		//atrybut* k = atrybuty.findByNazwa(a);
-		//if (k) {
-			//k->value = a.value;
-		//}
-		//else {
+
+		//chyba dziala
+		atrybut* k = atrybuty.findByNazwa(a);
+		if (k) {
+			k->value = a.value;
+		}
+		else {
 			atrybuty.add(a);
-			//atrybuty.print();
-		//}
+		}
 	}
 	void addSelektor(String selector) {
 		selektor.add(selector);
@@ -376,16 +420,57 @@ public:
 		return selektor.getLen();
 	}
 
+	size_t getAtributesLen() {
+		return atrybuty.getLen();
+	}
+
 	void print() {
 		selektor.print();
 		atrybuty.print();
+	}
+
+	String getSelectorByNumber(int i) {
+
+
+		String* ptr = selektor.getElementByNumber(i);
+
+		if (ptr == nullptr) {
+			return "";
+		}
+		return *ptr;
+	}
+
+	String getValueByProperty(atrybut att) {
+		atrybut* ptr = atrybuty.findByNazwa(att);
+		if (ptr == nullptr) {
+			return "";
+		}
+		return ptr->value;
+	}
+
+
+	bool containsAttribute(String property) {
+		atrybut* ptr = atrybuty.findByNazwa(atrybut(property, ""));
+		return ptr == nullptr ? false : true;
+	}
+
+	bool containsSelector(String selector) {
+		String* ptr = selektor.findByNazwa(selector);
+		return ptr == nullptr ? false : true;
+	}
+
+	bool deleteAll() {
+		//usowanie list obiekt zostaje (musi)
+		selektor.~ListSingleLinked();
+		atrybuty.~ListSingleLinked();
+		return true;
 	}
 };
 
 
 //Node dla double linked list
 struct BlocksNode {
-	
+
 public:
 	Block* blocks;
 	BlocksNode* next;
@@ -396,6 +481,17 @@ public:
 		:blocks(new Block[ROZ]), next(nullptr), prev(nullptr), size(0)
 	{
 	}
+
+	BlocksNode(const BlocksNode& other)
+		:blocks(other.blocks), next(other.next), prev(other.prev), size(other.size)
+	{
+	}
+
+	~BlocksNode()
+	{
+		delete[] blocks;
+	}
+
 };
 
 
@@ -410,14 +506,14 @@ public:
 	{
 	}
 
-	void addAtEnd(Block block) {
+	void addAtEnd(const Block& block) {
 		BlocksNode* temp = new BlocksNode;
 		if (head == nullptr) {
 			head = new BlocksNode;
 		}
 	}
 
-	void addBlock(Block block) {
+	void addBlock(Block& block) {
 		if (head == nullptr) {
 			head = new BlocksNode;
 		}
@@ -472,7 +568,7 @@ public:
 		BlocksNode* tmp = head;
 
 		while (tmp != nullptr) {
-			result += head->size;
+			result += tmp->size;
 			tmp = tmp->next;
 		}
 
@@ -480,15 +576,15 @@ public:
 	}
 
 	int numberOfSelectorsInSection(int n) {
-		int current = 0;
 		BlocksNode* tmp = head;
 
-		while (n > ROZ) {
+		//while (n > ROZ) {
+		while (n > tmp->size) {
+			n -= tmp->size;
 			tmp = tmp->next;
 			if (tmp == nullptr) {
-				return -1;
+				return 0;
 			}
-			n -= tmp->size;
 		}
 
 		for (int i = 0, k = 0; i < ROZ; i++) {
@@ -501,6 +597,154 @@ public:
 		}
 		return 0;
 	};
+
+
+	int numberOfAtributesInSection(int n) {
+		BlocksNode* tmp = head;
+
+		//while (n > ROZ) {
+		while (n > tmp->size) {
+			tmp = tmp->next;
+			if (tmp == nullptr) {
+				return 0;
+			}
+			n -= tmp->size;
+		}
+
+		for (int i = 0, k = 0; i < ROZ; i++) {
+			if (tmp->blocks[i].used == true) {
+				k++;
+			}
+			if (k == n) {
+				return tmp->blocks[k - 1].getAtributesLen();
+			}
+		}
+		return 0;
+	}
+
+	//find j-th selector in i-th section
+	String findSelectorInBlock(int index, int j) {
+		BlocksNode* tmp = head;
+
+		//while (n > ROZ) {
+		while (index > tmp->size) {
+			tmp = tmp->next;
+			if (tmp == nullptr) {
+				return "";
+			}
+			index -= tmp->size;
+		}
+
+		for (int i = 0, k = 0; i < ROZ; i++) {
+			if (tmp->blocks[i].used == true) {
+				k++;
+			}
+			if (k == index) {
+				return tmp->blocks[k - 1].getSelectorByNumber(j);
+			}
+		}
+		return "";
+	};
+
+	String findValueInSectionByPropertyName(int index, String property) {
+		BlocksNode* tmp = head;
+
+		//while (n > ROZ) {
+		while (index > tmp->size) {
+			tmp = tmp->next;
+			if (tmp == nullptr) {
+				return "";
+			}
+			index -= tmp->size;
+		}
+
+		for (int i = 0, k = 0; i < ROZ; i++) {
+			if (tmp->blocks[i].used == true) {
+				k++;
+			}
+			if (k == index) {
+				return tmp->blocks[k - 1].getValueByProperty(atrybut(property, ""));
+			}
+		}
+		return "";
+	}
+
+	int numberOfAtributes(String property) {
+		BlocksNode* tmp = head;
+		int count = 0;
+		while (tmp != nullptr) {
+			for (int i = 0, k = 0; i < ROZ; i++) {
+				if (tmp->blocks[i].used == true) {
+					if (tmp->blocks[i].containsAttribute(property)) {
+						count++;
+					}
+				}
+			}
+			tmp = tmp->next;
+		}
+		return count;
+	};
+
+	int numberOfSelectorOfName(String selector) {
+		BlocksNode* tmp = head;
+		int count = 0;
+		while (tmp != nullptr) {
+			for (int i = 0, k = 0; i < ROZ; i++) {
+				if (tmp->blocks[i].used == true) {
+					if (tmp->blocks[i].containsSelector(selector)) {
+						count++;
+					}
+				}
+			}
+			tmp = tmp->next;
+		}
+		return count;
+	}
+
+	bool deleteBlock(int index) {
+		BlocksNode* tmp = head;
+
+		//while (n > ROZ) {
+		while (index > tmp->size) {
+			tmp = tmp->next;
+			if (tmp == nullptr) {
+				return false;
+			}
+			index -= tmp->size;
+		}
+
+		for (int i = 0, k = 0; i < ROZ; i++) {
+			if (tmp->blocks[i].used == true) {
+				k++;
+			}
+			if (k == index) {
+				tmp->size--;
+				tmp->blocks[k - 1].used = false;
+				tmp->blocks[k - 1].deleteAll();
+				break;
+				//tmp->blocks[k - 1].used = false;
+			}
+
+		}
+
+		//usuwanie wezla jesli jest pusty
+		if (tmp != head) {
+			if (tmp->size == 0) {
+				if (tmp->next != nullptr) {
+
+					if (tmp->prev != nullptr) {
+						tmp->prev->next = tmp->next;
+
+					}
+					tmp->next->prev = tmp->prev;
+				}
+				delete tmp;
+			}
+		}
+
+		return true;
+	}
+
 };
 
 
@@ -509,10 +753,10 @@ int main() {
 	bool selectors = true;
 	bool atributes = false;
 	bool commands = false;
-	
+
 	String tmp;
 	Block* block = new Block();
-	
+
 	while (std::cin >> tmp) {
 
 		if (selectors) {
@@ -581,7 +825,7 @@ int main() {
 				tmp = "";
 			}
 			bloki.addBlock(*block);
-			delete block;
+			//delete block;
 			block = new Block();
 			atributes = false;
 			commands = false;
@@ -592,21 +836,93 @@ int main() {
 			if (tmp == "?") {
 				std::cout << "? == " << bloki.numberOfSections() << std::endl;
 			}
+			if (tmp == ".") {
+				bloki.printBlocks();
+			}
 			else if (tmp == "****") {
 				commands = false;
 				selectors = true;
 				atributes = false;
 			}
 			else if (tmp.is_in(",S,?")) {
-				
-				std::cout << "w S,?" << std::endl;
-				int n;
-				n = atoi(tmp.c_str());
-				int result = bloki.numberOfSelectorsInSection(n);
-				if (result != -1) {
-					std::cout << n << ",S,? == " << result << std::endl;
+				// i, S, ? – wypisz liczbê selektorów dla sekcji nr i(numery zaczynaj¹ siê od 1), jeœli nie ma takiego bloku pomiñ;
+				int n = atoi(tmp.c_str());
+
+				if (n == 0) {
+					//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
+					tmp.cut(tmp.length() - 5);
+					int result = bloki.numberOfSelectorOfName(tmp);
+
+					std::cout << tmp << ",S,? == " << result << std::endl;
+				}
+				else {
+					int result = bloki.numberOfSelectorsInSection(n);
+					if (result != 0) {
+						std::cout << n << ",S,? == " << result << std::endl;
+					}
+				}
+
+
+			}
+			else if (tmp.is_in(",A,?")) {
+				// wypisz liczbê atrybutów dla sekcji nr i, jeœli nie ma takiego bloku lub sekcji pomiñ;
+				int n = atoi(tmp.c_str());
+
+				if (n == 0) {
+					//n, A, ? – wypisz ³¹czn¹(dla wszystkich bloków) liczbê wyst¹pieñ atrybutu nazwie n. (W ramach
+					//pojedynczego bloku duplikaty powinny zostaæ usuniête na etapie wczytywania).Mo¿liwe jest 0;
+					tmp.cut(tmp.length() - 5);
+
+					int result = bloki.numberOfAtributes(tmp);
+					std::cout << tmp << ",A,? == " << result << std::endl;
+				}
+				else {
+					int result = bloki.numberOfAtributesInSection(n);
+					if (result != 0) {
+						std::cout << n << ",A,? == " << result << std::endl;
+					}
+				}
+
+			}
+			else if (tmp.is_in(",S,")) {
+
+				//i,S,j – wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutów zaczynaj¹ siê od 1) jeœli nie
+				// ma sekcji lub selektora pomiñ;
+
+				int i = atoi(tmp.c_str()); //find first number
+				int j = atoi(tmp.c_str() + tmp.find_substring(",") + 3); //find third number
+				String result = bloki.findSelectorInBlock(i, j);
+
+				if (result.length() > 0) {
+					std::cout << i << ",S," << j << " == " << result << std::endl;
 				}
 			}
+			else if (tmp.is_in(",A,")) {
+				// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
+
+				int i = atoi(tmp.c_str()); //find first number
+				String n = tmp.c_str() + tmp.find_substring(",") + 3; //find third number
+				String result = bloki.findValueInSectionByPropertyName(i, n);
+
+				if (result.length() > 0) {
+					std::cout << i << ",A," << n << " == " << result << std::endl;
+				}
+			}
+			else if (tmp.is_in(",E,")) {
+
+			}
+			else if (tmp.is_in(",D,*")) {
+				//tmp.cut(tmp.length() - 5);
+				int i = atoi(tmp.c_str());
+
+				bool r = bloki.deleteBlock(i);
+
+				if (r) {
+					std::cout << i << ",D,*" << " == deleted" << std::endl;
+
+				}
+			}
+
 		}
 	}
 
