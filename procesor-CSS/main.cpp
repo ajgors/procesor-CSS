@@ -4,9 +4,6 @@
 #define ROZ 8
 
 
-//sekcje jako listy 2 
-
-
 //Implementacja Stringa
 class String {
 
@@ -45,9 +42,6 @@ public:
 		return *this;
 	}
 
-
-	//nowe
-
 	bool operator==(String& other) {
 		//if (m_string == NULL) return false;
 		return strcmp(m_string, other.m_string) == 0;
@@ -63,7 +57,6 @@ public:
 		return strcmp(m_string, other) != 0;
 	}
 
-
 	void pop_back() {
 		if (m_length > 0) {
 			m_length--;
@@ -74,7 +67,6 @@ public:
 			m_string = new_string;
 		}
 	}
-
 
 	String(const char* string)
 		:m_length(strlen(string))
@@ -88,9 +80,7 @@ public:
 	}
 
 	//copy constructor
-	String(const String& other)
-
-	{
+	String(const String& other) {
 		m_length = other.m_length;
 		m_string = new char[other.m_length + 1];
 
@@ -139,7 +129,7 @@ public:
 		return m_length;
 	}
 
-	size_t find_substring(const char* substring) {
+	int find_substring(const char* substring) {
 		size_t length = strlen(substring);
 
 		size_t cout = 0;
@@ -154,7 +144,6 @@ public:
 				if (cout == length) return i;
 			}
 		}
-
 		return -1;
 	}
 
@@ -190,7 +179,7 @@ public:
 
 	//from 0 to index
 	void cut(size_t index) {
-		size_t new_length = index+1;
+		size_t new_length = index + 1;
 
 		char* new_string = new char[new_length + 1];
 		std::memset(new_string, 0, new_length + 1);
@@ -201,10 +190,7 @@ public:
 			m_string = new_string;
 			m_length = new_length;
 		}
-
 	}
-
-	//substring
 
 	char at(size_t index) {
 		return m_string[index];
@@ -219,10 +205,8 @@ public:
 		m_string = new char[1];
 		m_length = 1;
 	}
-	//friend pozwala funkcji ktora pobiera obiekt miec dostêp do prywatnych pól
 	friend std::ostream& operator<<(std::ostream& os, const String& string);
 	friend std::istream& operator>>(std::istream& is, String& out);
-
 };
 
 
@@ -235,8 +219,6 @@ std::ostream& operator<<(std::ostream& os, const String& string)
 
 std::istream& operator>>(std::istream& in, String& out)
 {
-
-
 	char* buffer = new char[100];
 	memset(buffer, 0, 100);
 	in >> buffer;
@@ -245,63 +227,85 @@ std::istream& operator>>(std::istream& in, String& out)
 	return in;
 }
 
-struct atrybut {
-	//String nazwa;
-	String nazwa;
-	String wartosc;
 
+
+
+
+//struct przetrzymuj¹cy atrybuty (property : value)
+struct atrybut {
+	String property;
+	String value;
 
 	atrybut()
-		:nazwa(""), wartosc("")
+		:property(""), value("")
 	{
-
 	}
 
-	atrybut(String nazwa, String wartosc)
-		:nazwa(nazwa), wartosc(wartosc)
+	atrybut(String property, String value)
+		:property(property), value(value)
 	{
-
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const atrybut& obj)
 	{
-		os << obj.nazwa << ":" << obj.wartosc;
+		os << obj.property << ":" << obj.value;
 		return os;
 	}
-
 };
 
+
+//node dla listy pojedyczej
 template<typename T>
-class List {
-	
-private:
+struct NodeList {
+
+
+public:
 	T data;
-	List* next;
+	NodeList* next;
+
+	NodeList()
+		: next(nullptr)
+	{
+	}
+
+	NodeList(T data)
+		: next(nullptr), data(data)
+	{
+	}
+};
+
+
+template<typename T>
+class ListSingleLinked {
+
+private:
+	NodeList<T>* head;
 public:
 
 
-	List()
-		: next(nullptr)
+	ListSingleLinked()
+		: head(nullptr)
 	{
-	
 	}
 
-	List(T data) {
-		this->data = data;
-		this->next = nullptr;
-	}
-
+	//git
 	void add(T data) {
-		List* temp = this;
 
-		while (temp->next != nullptr) {
-			temp = temp->next;
+		if (head == nullptr) {
+			head = new NodeList<T>(data);
 		}
-		temp->next = new List(data);
+		else {
+			NodeList<T>* temp = head;	
+			while (temp->next != nullptr) {
+				temp = temp->next;
+			}
+			temp->next = new NodeList<T>(data);
+		}
 	}
 
+	//git
 	void print() {
-		List* temp = this->next;
+		NodeList<T>* temp = head;
 
 		while (temp != nullptr) {
 			std::cout << temp->data << " ";
@@ -310,8 +314,9 @@ public:
 		std::cout << std::endl;
 	}
 
+	//git
 	int getLen() {
-		List* temp = this->next;
+		NodeList<T>* temp = head;
 		int len = 0;
 		while (temp != nullptr) {
 			len++;
@@ -320,10 +325,11 @@ public:
 		return len;
 	}
 
-	atrybut* findByNazwa(String nazwa) {
-		List* temp = this;
+	//nm czy git
+	atrybut* findByNazwa(atrybut a) {
+		NodeList<atrybut>* temp = head;
 		while (temp != nullptr) {
-			if (temp->data.nazwa == nazwa)
+			if (temp->data.property == a.property)
 				return &(temp->data);
 			temp = temp->next;
 		}
@@ -332,31 +338,19 @@ public:
 };
 
 
-
 class Block {
-	
-private: 
-	List<String> selektor;
-	List<atrybut> atrybuty;
+
+private:
+	ListSingleLinked<String> selektor;
+	ListSingleLinked<atrybut> atrybuty;
 public:
-	
 	bool used;
+
 	Block()
 		:used(false)
 	{
-
 	}
 
-	Block(String selektor, String nazwa, String value)
-		:selektor(selektor), atrybuty(atrybut(nazwa,value)), used(true)
-	{
-	}
-
-	Block(const Block& b) {
-		selektor = b.selektor;
-		atrybuty = b.atrybuty;
-	}
-	
 	Block& operator=(const Block& b) {
 		selektor = b.selektor;
 		atrybuty = b.atrybuty;
@@ -365,14 +359,14 @@ public:
 
 	void addAtribute(atrybut a) {
 		//sprawdzic czy juz taki atrybut jest jak tak to zamienic
-
-		atrybut* k = atrybuty.findByNazwa(a.nazwa);
-		if (k) {
-			k->wartosc = a.wartosc;
-		}
-		else {
+		//atrybut* k = atrybuty.findByNazwa(a);
+		//if (k) {
+			//k->value = a.value;
+		//}
+		//else {
 			atrybuty.add(a);
-		}
+			//atrybuty.print();
+		//}
 	}
 	void addSelektor(String selector) {
 		selektor.add(selector);
@@ -389,51 +383,48 @@ public:
 };
 
 
-struct Node {
+//Node dla double linked list
+struct BlocksNode {
 	
-
 public:
 	Block* blocks;
-	Node* next;
-	Node* prev;
+	BlocksNode* next;
+	BlocksNode* prev;
 	size_t size;
 
-	Node()
+	BlocksNode()
 		:blocks(new Block[ROZ]), next(nullptr), prev(nullptr), size(0)
 	{
 	}
-
 };
 
-//template<typename T>
-class ListLinked {
+
+class ListDoubleLinked {
 
 private:
-	Node* head;
+	BlocksNode* head;
 public:
 
-	ListLinked()
+	ListDoubleLinked()
 		:head(nullptr)
 	{
 	}
 
 	void addAtEnd(Block block) {
-		Node* temp = new Node;
+		BlocksNode* temp = new BlocksNode;
 		if (head == nullptr) {
-			head = new Node;
+			head = new BlocksNode;
 		}
-
 	}
 
 	void addBlock(Block block) {
-		Node* temp = head;
 		if (head == nullptr) {
-			head = new Node;
-			temp = head;
+			head = new BlocksNode;
 		}
+		BlocksNode* temp = head;
 		while (temp->size >= ROZ) {
 			if (temp->next == nullptr) {
-				Node* t = new Node();
+				BlocksNode* t = new BlocksNode();
 				t->prev = temp;
 				temp->next = t;
 				temp = t;
@@ -452,11 +443,10 @@ public:
 				}
 			}
 		}
-
 	}
 
 	void printBlocks() {
-		Node* temp = head;
+		BlocksNode* temp = head;
 		while (temp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
 				if (temp->blocks[i].used == true) {
@@ -467,20 +457,19 @@ public:
 		}
 	}
 
-	~ListLinked() {
-		Node* temp = head;
+	~ListDoubleLinked() {
+		BlocksNode* temp = head;
 		while (temp != nullptr) {
 			delete[] temp->blocks;
 			temp = temp->next;
 		}
 	}
 
-
 	//liczba sekcji
 	size_t numberOfSections() {
 		size_t result = 0;
 
-		Node* tmp = head;
+		BlocksNode* tmp = head;
 
 		while (tmp != nullptr) {
 			result += head->size;
@@ -492,7 +481,7 @@ public:
 
 	int numberOfSelectorsInSection(int n) {
 		int current = 0;
-		Node* tmp = head;
+		BlocksNode* tmp = head;
 
 		while (n > ROZ) {
 			tmp = tmp->next;
@@ -507,78 +496,54 @@ public:
 				k++;
 			}
 			if (k == n) {
-				return tmp->blocks[k-1].getSelectorLen();
+				return tmp->blocks[k - 1].getSelectorLen();
 			}
 		}
 		return 0;
 	};
 };
 
-// zle zapisuje margin : 4p 4p 4p 4p
-// robi margin : 4p, 4p:4p
-// while char != ; or } wczytuj dalej tmp.apped -> 4p -> 4p.append 4p = 4p 4p
-
 
 int main() {
-	ListLinked bloki;
+	ListDoubleLinked bloki;
 	bool selectors = true;
-
 	bool atributes = false;
 	bool commands = false;
-
+	
 	String tmp;
+	Block* block = new Block();
+	
 	while (std::cin >> tmp) {
-			
-		Block block;
+
 		if (selectors) {
-			bool end = false;
-			block.used = true;
-			//while (true) {
-				//char* buffor = new char[50];
-				//std::cin >> buffor;
-				//std::cin >> tmp;
-				//std::cout << tmp;
-			//std::cout << "w selektorach";
-				//tmp = buffor;
-				if (tmp == "{") {
-					selectors = false;
-					atributes = true;
-					tmp = "";
-					//break;
+			if (tmp == "{") {
+				selectors = false;
+				atributes = true;
+				tmp = "";
+			}
+			else if (tmp.at(0) == '{') {
+				selectors = false;
+				atributes = true;
+			}
+			else if (tmp == "????") {
+				selectors = false;
+				atributes = false;
+				commands = true;
+				continue;
+			}
+			else {
+				if (tmp.at(tmp.length() - 1) == ',') {
+					tmp.pop_back();
 				}
-				else if (tmp.at(0) == '{') {
-					selectors = false;
-					atributes = true;
-					//break;
+				if (tmp != " ") {
+					block->addSelektor(tmp);
 				}
-				else if (tmp == "?") {
-					//end = true;
-					//break;
-				}
-				else if (tmp == "????") {
-					//std::cout << "hello";
-					selectors = false;
-					atributes = false;
-					commands = true;
-					continue;
-					//break;
-				}
-				else {
-					if (tmp.at(tmp.length()-1) == ',') {
-						tmp.pop_back();
-					}
-					if (tmp != " ") {
-						block.addSelektor(tmp);
-					}
-				}
-		/*	}
-			if (end) break;*/
+			}
 		}
 		if (atributes) {
 			String value;
 			bool running = true;
-			while (tmp != "}" && value != "}" && running ) {
-				//std::cout << "w atrybutach";
+			while (tmp != "}" && value != "}" && running) {
 				if (tmp != "") {
 					tmp.slice(1);
 					tmp.pop_back();
@@ -588,7 +553,7 @@ int main() {
 					if (tmp == "}") break;
 					tmp.pop_back();
 				}
-				
+
 				String s;
 
 				std::cin >> value;
@@ -601,33 +566,29 @@ int main() {
 
 				}
 
-
-				if (s.at(s.length() -1) == '}') {
+				if (s.at(s.length() - 1) == '}') {
 					s.pop_back();
 					running = false;
 				}
 
-				//Ÿle jest zmieniana m_length przy append naprawione
-
-				if (s.at(s.length() -1) == ';') {
+				if (s.at(s.length() - 1) == ';') {
 					s.pop_back();
 				}
 
 				if (tmp != "" && value != "") {
-					block.addAtribute(atrybut(tmp, s));
+					block->addAtribute(atrybut(tmp, s));
 				}
 				tmp = "";
 			}
-			block.used = true;
-			bloki.addBlock(block);
+			bloki.addBlock(*block);
+			delete block;
+			block = new Block();
 			atributes = false;
 			commands = false;
 			selectors = true;
 		}
 		else if (commands) {
-			//std::cout << "w komendach";
-			//std::cin >> tmp;
-			//std::cout << tmp << std::endl;
+
 			if (tmp == "?") {
 				std::cout << "? == " << bloki.numberOfSections() << std::endl;
 			}
@@ -636,21 +597,18 @@ int main() {
 				selectors = true;
 				atributes = false;
 			}
-			else if (tmp.is_in("S,?") != -1) {
+			else if (tmp.is_in(",S,?")) {
+				
+				std::cout << "w S,?" << std::endl;
 				int n;
-				//tmp.cut(tmp.length() - 4); //remove S,?
 				n = atoi(tmp.c_str());
 				int result = bloki.numberOfSelectorsInSection(n);
-				std::cout << "------" << n << std::endl;
-				
 				if (result != -1) {
 					std::cout << n << ",S,? == " << result << std::endl;
 				}
 			}
-			
 		}
-
 	}
-	
+
 	return 0;
 }

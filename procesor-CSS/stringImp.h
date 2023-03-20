@@ -133,7 +133,7 @@ public:
 		return m_length;
 	}
 
-	size_t find_substring(const char* substring) {
+	int find_substring(const char* substring) {
 		size_t length = strlen(substring);
 
 		size_t cout = 0;
