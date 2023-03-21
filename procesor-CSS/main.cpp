@@ -207,6 +207,15 @@ public:
 		m_string = new char[1];
 		m_length = 1;
 	}
+
+	int countChar(char c) {
+		int count = 0;
+		for (size_t i = 0; i < m_length; i++) {
+			if (m_string[i] == c) count++;
+		}
+		return count;
+	}
+
 	friend std::ostream& operator<<(std::ostream& os, const String& string);
 	friend std::istream& operator>>(std::istream& is, String& out);
 };
@@ -320,7 +329,7 @@ public:
 		NodeList<T>* temp = head;
 
 		while (temp != nullptr) {
-			std::cout << temp->data << " ";
+			std::cout << temp->data << " | ";
 			temp = temp->next;
 		}
 		std::cout << std::endl;
@@ -566,12 +575,27 @@ public:
 			temp = temp->next;
 		}
 	}
-	
+
 	void addAtEnd(const Block& block) {
 		BlocksNode* temp = new BlocksNode;
 		if (head == nullptr) {
 			head = new BlocksNode;
 		}
+	}
+
+
+	BlocksNode* getBlocksNodeByBlockNumber(int n) {
+		BlocksNode* temp = head;
+		while (temp != nullptr) {
+			if (n > temp->usedCount) {
+				n -= temp->usedCount;
+			}
+			else {
+				return temp;
+			}
+			temp = temp->next;
+		}
+		return nullptr;
 	}
 
 	//teraz powinno byc git
@@ -598,7 +622,7 @@ public:
 
 	//POWINNO BYC GIT
 	void addBlock(Block& block) {
-		
+
 		if (head == nullptr) {
 			head = new BlocksNode;
 		}
@@ -694,7 +718,7 @@ public:
 		if (tmp == nullptr) {
 			return "";
 		}
-		return tmp->getValueByProperty(atrybut(property,""));
+		return tmp->getValueByProperty(atrybut(property, ""));
 	}
 
 	//lizcba wyst¹pien atrybutu w szystkich sekcjach	 n,A,?
@@ -730,43 +754,41 @@ public:
 		return count;
 	}
 
+
+	void deleteEmptyNode(BlocksNode* tmp){
+		if (tmp != head) {
+			if (tmp->next != nullptr) {
+				if (tmp->prev != nullptr) {
+					tmp->prev->next = tmp->next;
+				}
+				tmp->next->prev = tmp->prev;
+			}
+			delete tmp;
+		}
+		else {
+			BlocksNode* newhead = new BlocksNode();
+			delete head;
+			head = newhead;
+		}
+	}
+
+
+	///chyba git
 	bool deleteBlock(int index) {
-		BlocksNode* tmp = head;
+		Block* block = getBlockByNumber(index);
+		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
 
-		//while (n > ROZ) {
-		while (index > tmp->size) {
-			tmp = tmp->next;
-			if (tmp == nullptr) {
-				return false;
-			}
-			index -= tmp->size;
+		if (block == nullptr) {
+			return false;
 		}
 
-		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (tmp->blocks[i].used == true) {
-				k++;
-			}
-			if (k == index) {
-				tmp->blocks[k - 1].used = false;
-				tmp->blocks[k - 1].deleteAll();
-				break;
-			}
-
-		}
+		block->used = false;
+		tmp->usedCount--;
+		block->deleteAll();
 
 		//usuwanie wezla jesli jest pusty
-		if (tmp != head) {
-			if (tmp->size == 0) {
-				if (tmp->next != nullptr) {
-
-					if (tmp->prev != nullptr) {
-						tmp->prev->next = tmp->next;
-
-					}
-					tmp->next->prev = tmp->prev;
-				}
-				delete tmp;
-			}
+		if (tmp->usedCount == 0) {
+			deleteEmptyNode(tmp);
 		}
 
 		return true;
@@ -774,53 +796,29 @@ public:
 
 
 	bool removeInIthBlockAttribute(int index, String n) {
-		BlocksNode* tmp = head;
-
-		//while (n > ROZ) {
-		while (index > tmp->size) {
-			tmp = tmp->next;
-			if (tmp == nullptr) {
-				return false;
-			}
-			index -= tmp->size;
+		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
+		Block* block = getBlockByNumber(index);
+		
+		if (block == nullptr) {
+			return false;
 		}
 
-		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (tmp->blocks[i].used == true) {
-				k++;
-			}
-			///chyba zamiast k i wszêdzie powinno byc
-			if (k == index) {
-				tmp->blocks[i].removeAttribute(n);
-				int x = tmp->blocks[i].getAtributesLen();
-				if (x == 0) {
-					//wszedlo ale nie usuwa
-					tmp->blocks[i].deleteAll();
-					tmp->blocks[i].used = false;
-				}
-				break;
-			}
-
+		block->removeAttribute(n);
+		if (block->getAtributesLen() == 0) {
+			block->used = false;
+			tmp->usedCount--;
+			block->deleteAll();
 		}
+		
 		//usuwanie wezla jesli jest pusty
-		if (tmp != head) {
-			if (tmp->size == 0) {
-				if (tmp->next != nullptr) {
-
-					if (tmp->prev != nullptr) {
-						tmp->prev->next = tmp->next;
-
-					}
-					tmp->next->prev = tmp->prev;
-				}
-				delete tmp;
+		if (tmp->usedCount == 0) {
+			std::cout << "wezel usuniety" << std::endl;
+			if (tmp->usedCount == 0) {
+				deleteEmptyNode(tmp);
 			}
 		}
-
 		return true;
 	};
-
-
 };
 
 
@@ -834,33 +832,51 @@ int main() {
 	Block* block = new Block();
 
 	while (std::cin >> tmp) {
+		if (tmp == "????") {
+			//std::cout << "hell" << std::endl;
+			selectors = false;
+			atributes = false;
+			commands = true;
+		}
 
 		if (selectors) {
-			if (tmp == "{") {
-				selectors = false;
-				atributes = true;
-				tmp = "";
-			}
-			else if (tmp.at(0) == '{') {
-				selectors = false;
-				atributes = true;
-			}
-			else if (tmp == "????") {
-				selectors = false;
-				atributes = false;
-				commands = true;
-				continue;
-			}
-			else {
-				if (tmp.at(tmp.length() - 1) == ',') {
-					tmp.pop_back();
+			//wczytywanie a¿ do , 
+			//std::cout << "jestes w selektorach" << std::endl;
+
+			String s;
+			while (tmp.at(tmp.length() - 1) != ',') {
+				std::cin >> s;
+
+				if (s == "{" || s.at(0) == '{') {
+					//std::cout << "przerwno" << std::endl;
+					atributes = true;
+					selectors = false;
+					break;
 				}
-				if (tmp != " ") {
-					block->addSelektor(tmp);
+
+				tmp.append(" ");
+				tmp.append(s.c_str());
+			}
+
+			if (tmp.at(tmp.length() - 1) == ',') {
+				tmp.pop_back();
+			}
+			if (tmp != " ") {
+				block->addSelektor(tmp);
+			}
+			if (s.length() > 0) {
+				if (s == "{") {
+					tmp = "";
+				}
+				else {
+					tmp = s.c_str();
 				}
 			}
+
 		}
 		if (atributes) {
+			//std::cout << "att" << std::endl;
+
 			String value;
 			bool running = true;
 			while (tmp != "}" && value != "}" && running) {
@@ -896,6 +912,7 @@ int main() {
 				}
 
 				if (tmp != "" && value != "") {
+					//std::cout << tmp << value << std::endl;
 					block->addAtribute(atrybut(tmp, s));
 				}
 				tmp = "";
@@ -908,6 +925,21 @@ int main() {
 			selectors = true;
 		}
 		else if (commands) {
+			//std::cout << "kom" << std::endl;
+
+			String s;
+			//jesli nie ma , na koncu
+			if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
+				while (true) {
+					std::cin >> s;
+					tmp.append(" ");
+					tmp.append(s.c_str());
+					if (s.at(s.length() - 4) == ',') {
+						s.pop_back();
+						break;
+					}
+				}
+			}
 
 			if (tmp == "?") {
 				std::cout << "? == " << bloki.numberOfSections() << std::endl;
@@ -928,7 +960,7 @@ int main() {
 					//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
 					tmp.cut(tmp.length() - 5);
 					int result = bloki.numberOfSelectorOfName(tmp);
-
+					//std::cout << tmp << std::endl;
 					std::cout << tmp << ",S,? == " << result << std::endl;
 				}
 				else {
@@ -994,7 +1026,6 @@ int main() {
 
 				if (r) {
 					std::cout << i << ",D,*" << " == deleted" << std::endl;
-
 				}
 			}
 			else if (tmp.is_in(",D,")) {
@@ -1008,7 +1039,6 @@ int main() {
 
 				}
 			}
-
 		}
 	}
 
