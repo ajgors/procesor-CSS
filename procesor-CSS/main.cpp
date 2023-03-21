@@ -20,16 +20,18 @@ public:
 
 	String& operator=(const String& string) {
 
-		m_length = string.m_length;
-		delete[] m_string;
-		m_string = new char[m_length + 1];
-		//strcpy_s(m_string, m_length + 1, string.m_string);
+		if (this != &string) {
+			m_length = string.m_length;
+			delete[] m_string;
+			m_string = new char[m_length + 1];
+			//strcpy_s(m_string, m_length + 1, string.m_string);
 
-		for (int i = 0; i < m_length; i++) {
-			m_string[i] = string.m_string[i];
+			for (size_t i = 0; i < m_length; i++) {
+				m_string[i] = string.m_string[i];
+			}
+			m_string[m_length] = '\0';
+
 		}
-		m_string[m_length] = '\0';
-
 		return *this;
 	}
 
@@ -100,6 +102,27 @@ public:
 		std::cout << m_string << std::endl;
 	}
 
+	String append(char to_append) {
+
+		size_t new_length = m_length + 1;
+
+		char* new_string = new char[new_length + 1];
+		std::memset(new_string, 0, new_length + 1);
+
+
+		if (m_length > 0) {
+			strcat_s(new_string, new_length + 1, m_string);
+		}
+		//strcat_s(new_string, new_length + 1, to_append);
+		strncat_s(new_string, new_length + 1, &to_append, 1);
+
+		delete[] m_string;
+		m_string = new_string;
+		m_length = new_length;
+
+		return *this;
+	}
+
 	String& append(const char* to_append) {
 
 		size_t length = strlen(to_append);
@@ -109,16 +132,14 @@ public:
 		char* new_string = new char[new_length + 1];
 		std::memset(new_string, 0, new_length + 1);
 
-		if (new_string) {
 
-			if (m_length > 0) {
-				strcat_s(new_string, new_length + 1, m_string);
-			}
-			strcat_s(new_string, new_length + 1, to_append);
-			delete[] m_string;
-			m_string = new_string;
-			m_length = new_length;
+		if (m_length > 0) {
+			strcat_s(new_string, new_length + 1, m_string);
 		}
+		strcat_s(new_string, new_length + 1, to_append);
+		delete[] m_string;
+		m_string = new_string;
+		m_length = new_length;
 
 		return *this;
 	}
@@ -131,6 +152,7 @@ public:
 		return m_length;
 	}
 
+	//returns index of substring start point if not found returns -1
 	int find_substring(const char* substring) {
 		size_t length = strlen(substring);
 
@@ -456,6 +478,7 @@ public:
 	Block& operator=(const Block& b) {
 		selektor = b.selektor;
 		atrybuty = b.atrybuty;
+		used = b.used;
 		return *this;
 	}
 
@@ -578,14 +601,6 @@ public:
 		}
 	}
 
-	void addAtEnd(const Block& block) {
-		BlocksNode* temp = new BlocksNode;
-		if (head == nullptr) {
-			head = new BlocksNode;
-		}
-	}
-
-
 	BlocksNode* getBlocksNodeByBlockNumber(int n) {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
@@ -622,6 +637,20 @@ public:
 		return nullptr;
 	}
 
+
+	void addAttributesToAll(atrybut a) {
+		//std::cout << "add att all" << std::endl;
+		BlocksNode* temp = head;
+		while (temp != nullptr) {
+			for (int i = 0; i < ROZ; i++) {
+				if (temp->blocks[i].used == true) {
+					temp->blocks[i].addAtribute(a);
+				}
+			}
+			temp = temp->next;
+		}
+	}
+
 	//POWINNO BYC GIT
 	void addBlock(Block& block) {
 
@@ -648,7 +677,7 @@ public:
 		temp->blocks[temp->size].used = true;
 		temp->size++;
 		temp->usedCount++;
-		
+
 
 		////zapisz w wolnym miejscu blok
 		//for (int i = ROZ-1; i >=0 ; i--) {
@@ -764,7 +793,7 @@ public:
 	}
 
 
-	void deleteEmptyNode(BlocksNode* tmp){
+	void deleteEmptyNode(BlocksNode* tmp) {
 		if (tmp != head) {
 			if (tmp->next != nullptr) {
 				if (tmp->prev != nullptr) {
@@ -807,7 +836,7 @@ public:
 	bool removeInIthBlockAttribute(int index, String n) {
 		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
 		Block* block = getBlockByNumber(index);
-		
+
 		if (block == nullptr) {
 			return false;
 		}
@@ -818,12 +847,10 @@ public:
 			tmp->usedCount--;
 			block->deleteAll();
 		}
-		
+
 		//usuwanie wezla jesli jest pusty
 		if (tmp->usedCount == 0) {
-			if (tmp->usedCount == 0) {
-				deleteEmptyNode(tmp);
-			}
+			deleteEmptyNode(tmp);
 		}
 		return true;
 	};
@@ -858,99 +885,115 @@ int main() {
 
 	String tmp;
 	Block* block = new Block();
+	String selector = "";
+	String property = "";
+	String value = "";
+	bool now_prop = true;
 
 	while (std::cin >> tmp) {
+
+		if (tmp == "") continue;
+		//if (atributes == false && tmp == "{") {
+		//	selectors = false;
+		//	atributes = true;
+		//}
+
+
 		if (tmp == "????") {
-			//std::cout << "hell" << std::endl;
 			selectors = false;
 			atributes = false;
 			commands = true;
 		}
+		int i = 0;
 
 		if (selectors) {
-			//wczytywanie a¿ do , 
-			//std::cout << "jestes w selektorach" << std::endl;
 
-			String s;
-			while (tmp.at(tmp.length() - 1) != ',') {
-				std::cin >> s;
+			//dodac spacje przy h4 + h5 
+			if (selector.length() > 0 && tmp != "{") {
+				selector.append(" ");
+			}
 
-				if (s == "{" || s.at(0) == '{') {
-					//std::cout << "przerwno" << std::endl;
+			for (; i < tmp.length(); i++) {
+				if (tmp.at(i) == '{') {
+					if (selector.at(selector.length() - 1) == ' ') {
+						selector.pop_back();
+					}
+
 					atributes = true;
 					selectors = false;
+					block->addSelektor(selector);
+					selector = "";
 					break;
 				}
-
-				tmp.append(" ");
-				tmp.append(s.c_str());
-			}
-
-			if (tmp.at(tmp.length() - 1) == ',') {
-				tmp.pop_back();
-			}
-			if (tmp != " ") {
-				block->addSelektor(tmp);
-			}
-			if (s.length() > 0) {
-				if (s == "{") {
-					tmp = "";
+				if (tmp.at(i) == ',') {
+					block->addSelektor(selector);
+					selector = "";
 				}
 				else {
-					tmp = s.c_str();
+					char s = tmp.at(i);
+					selector.append(s);
 				}
 			}
-
 		}
 		if (atributes) {
-			//std::cout << "att" << std::endl;
-
-			String value;
-			bool running = true;
-			while (tmp != "}" && value != "}" && running) {
-				if (tmp != "") {
-					tmp.slice(1);
-					tmp.pop_back();
-				}
-				else {
-					std::cin >> tmp;
-					if (tmp == "}") break;
-					tmp.pop_back();
-				}
-
-				String s;
-
-				std::cin >> value;
-				s.append(value.c_str());
-
-				while (value.at(value.length() - 1) != ';' && value.at(value.length() - 1) != '}') {
-					std::cin >> value;
-					s.append(" ");
-					s.append(value.c_str());
-
-				}
-
-				if (s.at(s.length() - 1) == '}') {
-					s.pop_back();
-					running = false;
-				}
-
-				if (s.at(s.length() - 1) == ';') {
-					s.pop_back();
-				}
-
-				if (tmp != "" && value != "") {
-					//std::cout << tmp << value << std::endl;
-					block->addAtribute(atrybut(tmp, s));
-				}
-				tmp = "";
+		
+			if (value.length() > 0 && tmp != "}") {
+				value.append(" ");
 			}
-			bloki.addBlock(*block);
-			//delete block;
-			block = new Block();
-			atributes = false;
-			commands = false;
-			selectors = true;
+
+			if (tmp == "}") {
+				now_prop = true;
+				atributes = false;
+				block->used = true;
+				selectors = true;
+				bloki.addBlock(*block);
+				block = new Block();
+				value = "";
+				property = "";
+			}
+			else {
+				for (; i < tmp.length(); i++) {
+					if (tmp.at(i) == '{') continue;
+					if (tmp.at(i) == '}') {
+
+						if (property.length() > 0) {
+							block->addAtribute(atrybut(property, value));
+							property = "";
+							value = "";
+						}
+						now_prop = true;
+						selectors = true;
+						atributes = false;
+						block->used = true;
+						bloki.addBlock(*block);
+						block = new Block();
+						break;
+					}
+					
+
+					if (tmp.at(i) == ':') {
+						now_prop = false;
+						continue;
+					}
+					if (tmp.at(i) == ';') {
+						block->addAtribute(atrybut(property, value));
+						property = "";
+						value = "";
+						now_prop = true;
+						continue;
+					}
+					if (now_prop) {
+						property.append(tmp.at(i));
+					}
+					else {
+						value.append(tmp.at(i));
+					}
+					if (tmp.at(i) == ',') {
+						value.append(" ");
+					}
+					
+				}
+			}
 		}
 		else if (commands) {
 			//std::cout << "kom" << std::endl;
@@ -1047,6 +1090,9 @@ int main() {
 			else if (tmp.is_in(",E,")) {
 				//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
 				//bierzemy ostatnie.W przypadku braku pomiñ;
+
+
+				//tu cos na stosie violation wywala
 				String n = tmp.c_str() + tmp.find_substring(",") + 3;
 				tmp.cut(tmp.length() - 4 - n.length());
 				String z = tmp;
