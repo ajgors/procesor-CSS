@@ -329,7 +329,7 @@ public:
 		NodeList<T>* temp = head;
 
 		while (temp != nullptr) {
-			std::cout << temp->data << " | ";
+			std::cout << temp->data << ", ";
 			temp = temp->next;
 		}
 		std::cout << std::endl;
@@ -463,7 +463,7 @@ public:
 		//sprawdzic czy juz taki atrybut jest jak tak to zamienic
 
 		atrybut* k = atrybuty.findByNazwa(a);
-		if (k) {
+		if (k != nullptr) {
 			k->value = a.value;
 		}
 		else {
@@ -483,7 +483,9 @@ public:
 	}
 
 	void print() {
+		std::cout << "Selectors: ";
 		selektor.print();
+		std::cout << "Attributes: ";
 		atrybuty.print();
 	}
 
