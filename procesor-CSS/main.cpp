@@ -586,7 +586,10 @@ public:
 			}
 		}
 		if (temp->size < ROZ) {
-			for (int i = 0; i < ROZ; i++) {
+			for (int i = temp->size; i < ROZ; i++) {
+
+
+				//zle chyba zawsze na koniec listy
 				if (temp->blocks[i].used == false) {
 					temp->blocks[i] = block;
 					temp->blocks[i].used = true;
@@ -624,7 +627,11 @@ public:
 		BlocksNode* tmp = head;
 
 		while (tmp != nullptr) {
-			result += tmp->size;
+			for (int i = 0; i < ROZ; i++) {
+				if (tmp->blocks[i].used) {
+					result += 1;
+				}
+			}
 			tmp = tmp->next;
 		}
 
@@ -774,7 +781,7 @@ public:
 				k++;
 			}
 			if (k == index) {
-				tmp->size--;
+				//tmp->size--;
 				tmp->blocks[k - 1].used = false;
 				tmp->blocks[k - 1].deleteAll();
 				break;
@@ -815,19 +822,36 @@ public:
 		}
 
 		for (int i = 0, k = 0; i < ROZ; i++) {
+			
+			
+
+
+
+
+
+
+
+
+
+
+
 			if (tmp->blocks[i].used == true) {
 				k++;
 			}
+
+			///chyba zamiast k i wszêdzie powinno byc
 			if (k == index) {
-				tmp->blocks[k - 1].removeAttribute(n);
-				if (tmp->blocks[k - 1].getAtributesLen() == 0) {
-					tmp->blocks[k - 1].deleteAll();
-					tmp->size--;
-					tmp->blocks->used = false;
+				tmp->blocks[i].removeAttribute(n);
+				int x = tmp->blocks[i].getAtributesLen();
+				if (x == 0) {
+					//wszedlo ale nie usuwa
+					tmp->blocks[i].deleteAll();
+					//tmp->size--;
+					tmp->blocks[i].used = false;
 				}
 				break;
 			}
-
+			
 		}
 		//usuwanie wezla jesli jest pusty
 		if (tmp != head) {
