@@ -825,6 +825,26 @@ public:
 		}
 		return true;
 	};
+
+	String findAttrForSelector(String& z, String& n) {
+		BlocksNode* tmp = head;
+		String result = "";
+		while (tmp != nullptr) {
+			for (int i = 0; i < ROZ; i++) {
+				if (tmp->blocks[i].used == true) {
+					if (tmp->blocks[i].containsSelector(z)) {
+						String s = tmp->blocks[i].getValueByProperty(atrybut(n, ""));
+						if (s.length() > 0) {
+							result = s;
+						}
+					}
+				}
+			}
+			tmp = tmp->next;
+		}
+		return result;
+	}
+
 };
 
 
@@ -1017,20 +1037,24 @@ int main() {
 				int i = atoi(tmp.c_str()); //find first number
 				String n = tmp.c_str() + tmp.find_substring(",") + 3;
 				String result = bloki.findValueInSectionByPropertyName(i, n);
-				std::cout <<  n << std::endl;
 
 				if (result.length() > 0) {
 					std::cout << i << ",A," << n << " == " << result << std::endl;
 				}
 			}
 			else if (tmp.is_in(",E,")) {
+				//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
+				//bierzemy ostatnie.W przypadku braku pomiñ;
 				String n = tmp.c_str() + tmp.find_substring(",") + 3;
 				tmp.cut(tmp.length() - 4 - n.length());
 				String z = tmp;
 
-				
-				//dobra n i z jest
-				std::cout << z << " " << n << std::endl;
+				String result = bloki.findAttrForSelector(z, n);
+
+				if (result.length() > 0) {
+					std::cout << z << ",E," << n << " == " << result << std::endl;
+				}
+
 			}
 			else if (tmp.is_in(",D,*")) {
 				int i = atoi(tmp.c_str());
