@@ -338,6 +338,7 @@ public:
 	}
 
 	T* findByNazwa(T a);
+	bool remove(T a);
 
 	T* getElementByNumber(int number) {
 		NodeList<T>* temp = head;
@@ -363,6 +364,55 @@ atrybut* ListSingleLinked<atrybut>::findByNazwa(atrybut a) {
 	}
 	return nullptr;
 }
+
+template<>
+bool ListSingleLinked<atrybut>::remove(atrybut a) {
+	NodeList<atrybut>* temp = head;
+	NodeList<atrybut>* t = head->next;
+	
+	if (head->data.property == a.property) {
+		delete head;
+		head = t;
+		return true;
+	}
+
+	while (temp->next != nullptr) {
+		if (temp->next->data.property == a.property) {
+			NodeList<atrybut>* temp2 = temp->next;
+
+			temp->next = temp->next->next;
+			delete temp2;
+			break;
+		}
+		temp = temp->next;
+	}
+
+
+	return false;
+}
+
+
+template<>
+bool ListSingleLinked<String>::remove(String a) {
+	NodeList<String>* temp = head;
+	if (temp->data == a) {
+		head = head->next;
+		delete temp;
+		return true;
+	}
+
+	while (temp->next != nullptr) {
+		if (temp->next->data == a) {
+			temp = temp->next->next;
+			delete temp->next;
+		}
+		temp = temp->next;
+	}
+
+
+	return true;
+}
+
 
 template<>
 String* ListSingleLinked<String>::findByNazwa(String a) {
@@ -463,6 +513,12 @@ public:
 		//usowanie list obiekt zostaje (musi)
 		selektor.~ListSingleLinked();
 		atrybuty.~ListSingleLinked();
+		return true;
+	}
+
+
+	bool removeAttribute(String n) {
+		atrybuty.remove(atrybut(n, ""));
 		return true;
 	}
 };
@@ -745,6 +801,53 @@ public:
 		return true;
 	}
 
+
+	bool removeInIthBlockAttribute(int index, String n) {
+		BlocksNode* tmp = head;
+
+		//while (n > ROZ) {
+		while (index > tmp->size) {
+			tmp = tmp->next;
+			if (tmp == nullptr) {
+				return false;
+			}
+			index -= tmp->size;
+		}
+
+		for (int i = 0, k = 0; i < ROZ; i++) {
+			if (tmp->blocks[i].used == true) {
+				k++;
+			}
+			if (k == index) {
+				tmp->blocks[k - 1].removeAttribute(n);
+				if (tmp->blocks[k - 1].getAtributesLen() == 0) {
+					tmp->blocks[k - 1].deleteAll();
+					tmp->size--;
+					tmp->blocks->used = false;
+				}
+				break;
+			}
+
+		}
+		//usuwanie wezla jesli jest pusty
+		if (tmp != head) {
+			if (tmp->size == 0) {
+				if (tmp->next != nullptr) {
+
+					if (tmp->prev != nullptr) {
+						tmp->prev->next = tmp->next;
+
+					}
+					tmp->next->prev = tmp->prev;
+				}
+				delete tmp;
+			}
+		}
+
+		return true;
+	};
+
+
 };
 
 
@@ -901,7 +1004,7 @@ int main() {
 				// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
 
 				int i = atoi(tmp.c_str()); //find first number
-				String n = tmp.c_str() + tmp.find_substring(",") + 3; //find third number
+				String n = tmp.c_str() + tmp.find_substring(",") + 3;
 				String result = bloki.findValueInSectionByPropertyName(i, n);
 
 				if (result.length() > 0) {
@@ -919,6 +1022,17 @@ int main() {
 
 				if (r) {
 					std::cout << i << ",D,*" << " == deleted" << std::endl;
+
+				}
+			}
+			else if (tmp.is_in(",D,")) {
+				int i = atoi(tmp.c_str()); //find first number
+				String n = tmp.c_str() + tmp.find_substring(",") + 3;
+
+				bool r = bloki.removeInIthBlockAttribute(i, n);
+
+				if (r) {
+					std::cout << i << ",D," << n << " == deleted" << std::endl;
 
 				}
 			}
