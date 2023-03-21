@@ -369,7 +369,7 @@ template<>
 bool ListSingleLinked<atrybut>::remove(atrybut a) {
 	NodeList<atrybut>* temp = head;
 	NodeList<atrybut>* t = head->next;
-	
+
 	if (head->data.property == a.property) {
 		delete head;
 		head = t;
@@ -453,7 +453,6 @@ public:
 	void addAtribute(atrybut a) {
 		//sprawdzic czy juz taki atrybut jest jak tak to zamienic
 
-		//chyba dziala
 		atrybut* k = atrybuty.findByNazwa(a);
 		if (k) {
 			k->value = a.value;
@@ -480,7 +479,6 @@ public:
 	}
 
 	String getSelectorByNumber(int i) {
-
 
 		String* ptr = selektor.getElementByNumber(i);
 
@@ -516,7 +514,6 @@ public:
 		return true;
 	}
 
-
 	bool removeAttribute(String n) {
 		atrybuty.remove(atrybut(n, ""));
 		return true;
@@ -532,14 +529,15 @@ public:
 	BlocksNode* next;
 	BlocksNode* prev;
 	size_t size;
+	size_t usedCount;
 
 	BlocksNode()
-		:blocks(new Block[ROZ]), next(nullptr), prev(nullptr), size(0)
+		:blocks(new Block[ROZ]), next(nullptr), prev(nullptr), size(0), usedCount(0)
 	{
 	}
 
 	BlocksNode(const BlocksNode& other)
-		:blocks(other.blocks), next(other.next), prev(other.prev), size(other.size)
+		:blocks(other.blocks), next(other.next), prev(other.prev), size(other.size), usedCount(other.usedCount)
 	{
 	}
 
@@ -547,7 +545,6 @@ public:
 	{
 		delete[] blocks;
 	}
-
 };
 
 
@@ -562,6 +559,14 @@ public:
 	{
 	}
 
+	~ListDoubleLinked() {
+		BlocksNode* temp = head;
+		while (temp != nullptr) {
+			delete[] temp->blocks;
+			temp = temp->next;
+		}
+	}
+	
 	void addAtEnd(const Block& block) {
 		BlocksNode* temp = new BlocksNode;
 		if (head == nullptr) {
@@ -569,10 +574,36 @@ public:
 		}
 	}
 
+	//teraz powinno byc git
+	Block* getBlockByNumber(int n) {
+		BlocksNode* temp = head;
+		while (temp != nullptr) {
+			if (n > temp->usedCount) {
+				n -= temp->usedCount;
+			}
+			else {
+				for (int i = 0, c = 0; i < ROZ; i++) {
+					if (temp->blocks[i].used == true) {
+						c++;
+					}
+					if (n == c) {
+						return &temp->blocks[i];  ////////////////zmienilem na i - 1
+					}
+				}
+			}
+			temp = temp->next;
+		}
+		return nullptr;
+	}
+
+	//POWINNO BYC GIT
 	void addBlock(Block& block) {
+		
 		if (head == nullptr) {
 			head = new BlocksNode;
 		}
+
+		//znajdz BlockNode gdzie s¹ wolne miejsca
 		BlocksNode* temp = head;
 		while (temp->size >= ROZ) {
 			if (temp->next == nullptr) {
@@ -585,21 +616,21 @@ public:
 				temp = temp->next;
 			}
 		}
-		if (temp->size < ROZ) {
-			for (int i = temp->size; i < ROZ; i++) {
 
-
-				//zle chyba zawsze na koniec listy
-				if (temp->blocks[i].used == false) {
-					temp->blocks[i] = block;
-					temp->blocks[i].used = true;
-					temp->size++;
-					break;
-				}
+		//zapisz w wolnym miejscu blok
+		for (int i = 0; i < ROZ; i++) {
+			if (temp->blocks[i].used == false) {
+				temp->blocks[i] = block;
+				temp->blocks[i].used = true;
+				temp->size++;
+				temp->usedCount++;
+				return;
 			}
 		}
 	}
 
+	//GIT
+	//printuje tylko bloki used == true
 	void printBlocks() {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
@@ -612,131 +643,66 @@ public:
 		}
 	}
 
-	~ListDoubleLinked() {
-		BlocksNode* temp = head;
-		while (temp != nullptr) {
-			delete[] temp->blocks;
-			temp = temp->next;
-		}
-	}
-
+	//GIt
 	//liczba sekcji
 	size_t numberOfSections() {
 		size_t result = 0;
-
 		BlocksNode* tmp = head;
 
 		while (tmp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].used) {
-					result += 1;
-				}
-			}
+			result += tmp->usedCount;
 			tmp = tmp->next;
 		}
 
 		return result;
 	}
 
+	//GIT
+	//liczba selektorow w sekcji n				 i,S,?
 	int numberOfSelectorsInSection(int n) {
-		BlocksNode* tmp = head;
-
-		//while (n > ROZ) {
-		while (n > tmp->size) {
-			n -= tmp->size;
-			tmp = tmp->next;
-			if (tmp == nullptr) {
-				return 0;
-			}
+		Block* tmp = getBlockByNumber(n);
+		if (tmp == nullptr) {
+			return 0;
 		}
-
-		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (tmp->blocks[i].used == true) {
-				k++;
-			}
-			if (k == n) {
-				return tmp->blocks[k - 1].getSelectorLen();
-			}
-		}
-		return 0;
+		return tmp->getSelectorLen();
 	};
 
-
+	//GIT
+	// liczba atrybutow w sekcji n				 i,A,?
 	int numberOfAtributesInSection(int n) {
-		BlocksNode* tmp = head;
-
-		//while (n > ROZ) {
-		while (n > tmp->size) {
-			tmp = tmp->next;
-			if (tmp == nullptr) {
-				return 0;
-			}
-			n -= tmp->size;
+		Block* tmp = getBlockByNumber(n);
+		if (tmp == nullptr) {
+			return 0;
 		}
-
-		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (tmp->blocks[i].used == true) {
-				k++;
-			}
-			if (k == n) {
-				return tmp->blocks[k - 1].getAtributesLen();
-			}
-		}
-		return 0;
+		return tmp->getAtributesLen();
 	}
 
-	//find j-th selector in i-th section
+	//GIT
+	//find j-th selector in i-th section		  i,S,j
 	String findSelectorInBlock(int index, int j) {
-		BlocksNode* tmp = head;
 
-		//while (n > ROZ) {
-		while (index > tmp->size) {
-			tmp = tmp->next;
-			if (tmp == nullptr) {
-				return "";
-			}
-			index -= tmp->size;
+		Block* tmp = getBlockByNumber(index);
+		if (tmp == nullptr) {
+			return "";
 		}
-
-		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (tmp->blocks[i].used == true) {
-				k++;
-			}
-			if (k == index) {
-				return tmp->blocks[k - 1].getSelectorByNumber(j);
-			}
-		}
-		return "";
+		return tmp->getSelectorByNumber(j);
 	};
 
+	// dla itej sekcji value of property			i,A,n
 	String findValueInSectionByPropertyName(int index, String property) {
-		BlocksNode* tmp = head;
-
-		//while (n > ROZ) {
-		while (index > tmp->size) {
-			tmp = tmp->next;
-			if (tmp == nullptr) {
-				return "";
-			}
-			index -= tmp->size;
+		Block* tmp = getBlockByNumber(index);
+		if (tmp == nullptr) {
+			return "";
 		}
-
-		for (int i = 0, k = 0; i < ROZ; i++) {
-			if (tmp->blocks[i].used == true) {
-				k++;
-			}
-			if (k == index) {
-				return tmp->blocks[k - 1].getValueByProperty(atrybut(property, ""));
-			}
-		}
-		return "";
+		return tmp->getValueByProperty(atrybut(property,""));
 	}
 
+	//lizcba wyst¹pien atrybutu w szystkich sekcjach	 n,A,?
 	int numberOfAtributes(String property) {
 		BlocksNode* tmp = head;
 		int count = 0;
 		while (tmp != nullptr) {
-			for (int i = 0, k = 0; i < ROZ; i++) {
+			for (int i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].used == true) {
 					if (tmp->blocks[i].containsAttribute(property)) {
 						count++;
@@ -781,11 +747,9 @@ public:
 				k++;
 			}
 			if (k == index) {
-				//tmp->size--;
 				tmp->blocks[k - 1].used = false;
 				tmp->blocks[k - 1].deleteAll();
 				break;
-				//tmp->blocks[k - 1].used = false;
 			}
 
 		}
@@ -822,23 +786,9 @@ public:
 		}
 
 		for (int i = 0, k = 0; i < ROZ; i++) {
-			
-			
-
-
-
-
-
-
-
-
-
-
-
 			if (tmp->blocks[i].used == true) {
 				k++;
 			}
-
 			///chyba zamiast k i wszêdzie powinno byc
 			if (k == index) {
 				tmp->blocks[i].removeAttribute(n);
@@ -846,12 +796,11 @@ public:
 				if (x == 0) {
 					//wszedlo ale nie usuwa
 					tmp->blocks[i].deleteAll();
-					//tmp->size--;
 					tmp->blocks[i].used = false;
 				}
 				break;
 			}
-			
+
 		}
 		//usuwanie wezla jesli jest pusty
 		if (tmp != head) {
@@ -1039,7 +988,6 @@ int main() {
 
 			}
 			else if (tmp.is_in(",D,*")) {
-				//tmp.cut(tmp.length() - 5);
 				int i = atoi(tmp.c_str());
 
 				bool r = bloki.deleteBlock(i);
