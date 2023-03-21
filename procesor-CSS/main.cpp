@@ -511,7 +511,7 @@ public:
 		return ptr == nullptr ? false : true;
 	}
 
-	bool containsSelector(String selector) {
+	bool containsSelector(String& selector) {
 		String* ptr = selektor.findByNazwa(selector);
 		return ptr == nullptr ? false : true;
 	}
@@ -641,16 +641,23 @@ public:
 			}
 		}
 
-		//zapisz w wolnym miejscu blok
-		for (int i = 0; i < ROZ; i++) {
-			if (temp->blocks[i].used == false) {
-				temp->blocks[i] = block;
-				temp->blocks[i].used = true;
-				temp->size++;
-				temp->usedCount++;
-				return;
-			}
-		}
+
+		temp->blocks[temp->size] = block;
+		temp->blocks[temp->size].used = true;
+		temp->size++;
+		temp->usedCount++;
+		
+
+		////zapisz w wolnym miejscu blok
+		//for (int i = ROZ-1; i >=0 ; i--) {
+		//	if (temp->blocks[i].used == true) {
+		//		temp->blocks[i+1] = block;
+		//		temp->blocks[i+1].used = true;
+		//		temp->size++;
+		//		temp->usedCount++;
+		//		return;
+		//	}
+		//}
 	}
 
 	//GIT
@@ -738,7 +745,7 @@ public:
 		return count;
 	};
 
-	int numberOfSelectorOfName(String selector) {
+	int numberOfSelectorOfName(String& selector) {
 		BlocksNode* tmp = head;
 		int count = 0;
 		while (tmp != nullptr) {
@@ -812,7 +819,6 @@ public:
 		
 		//usuwanie wezla jesli jest pusty
 		if (tmp->usedCount == 0) {
-			std::cout << "wezel usuniety" << std::endl;
 			if (tmp->usedCount == 0) {
 				deleteEmptyNode(tmp);
 			}
@@ -1011,13 +1017,20 @@ int main() {
 				int i = atoi(tmp.c_str()); //find first number
 				String n = tmp.c_str() + tmp.find_substring(",") + 3;
 				String result = bloki.findValueInSectionByPropertyName(i, n);
+				std::cout <<  n << std::endl;
 
 				if (result.length() > 0) {
 					std::cout << i << ",A," << n << " == " << result << std::endl;
 				}
 			}
 			else if (tmp.is_in(",E,")) {
+				String n = tmp.c_str() + tmp.find_substring(",") + 3;
+				tmp.cut(tmp.length() - 4 - n.length());
+				String z = tmp;
 
+				
+				//dobra n i z jest
+				std::cout << z << " " << n << std::endl;
 			}
 			else if (tmp.is_in(",D,*")) {
 				int i = atoi(tmp.c_str());
