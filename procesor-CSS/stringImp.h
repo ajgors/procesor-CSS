@@ -152,7 +152,7 @@ public:
 		return -1;
 	}
 
-	bool is_in(const char* substring) {
+	bool contains(const char* substring) {
 		return find_substring(substring) >= 0;
 	}
 

@@ -4,18 +4,36 @@
 #define ROZ 8
 
 
-//Implementacja Stringa
 class String {
 
 private:
 	size_t m_length;
 	char* m_string;
-
 public:
 
 	String()
 		:m_length(0), m_string(nullptr)
 	{
+	}
+
+	~String() {
+		delete[] m_string;
+	}
+
+	String(const char* string)
+		:m_length(strlen(string))
+	{
+		m_string = new char[m_length + 1];
+		memcpy(m_string, string, m_length + 1);
+	}
+
+	String(const String& other) {
+		m_length = other.m_length;
+		m_string = new char[other.m_length + 1];
+
+		if (m_length > 0) {
+			memcpy(m_string, other.m_string, m_length + 1);
+		}
 	}
 
 	String& operator=(const String& string) {
@@ -24,18 +42,13 @@ public:
 			m_length = string.m_length;
 			delete[] m_string;
 			m_string = new char[m_length + 1];
-			//strcpy_s(m_string, m_length + 1, string.m_string);
-
-			for (size_t i = 0; i < m_length; i++) {
-				m_string[i] = string.m_string[i];
-			}
-			m_string[m_length] = '\0';
-
+			strcpy_s(m_string, m_length + 1, string.m_string);
 		}
 		return *this;
 	}
 
 	String& operator=(const char* string) {
+
 		m_length = strlen(string);
 		delete[] m_string;
 		m_string = new char[m_length + 1];
@@ -45,7 +58,6 @@ public:
 	}
 
 	bool operator==(String& other) {
-		//if (m_string == NULL) return false;
 		return strcmp(m_string, other.m_string) == 0;
 	}
 
@@ -54,8 +66,6 @@ public:
 	}
 
 	bool operator!=(const char* other) {
-		if (m_length == 0 && strlen(other) > 0) return true;
-
 		return strcmp(m_string, other) != 0;
 	}
 
@@ -69,30 +79,6 @@ public:
 			m_string = new_string;
 		}
 	}
-
-	String(const char* string)
-		:m_length(strlen(string))
-	{
-		m_string = new char[m_length + 1];
-		memcpy(m_string, string, m_length + 1);
-	}
-
-	~String() {
-		if (m_string != nullptr) {
-			delete[] m_string;
-		}
-	}
-
-	//copy constructor
-	String(const String& other) {
-		m_length = other.m_length;
-		m_string = new char[other.m_length + 1];
-
-		if (m_length > 0) {
-			memcpy(m_string, other.m_string, m_length + 1);
-		}
-	}
-
 
 	char& operator[](size_t index) {
 		return m_string[index];
@@ -109,34 +95,30 @@ public:
 		char* new_string = new char[new_length + 1];
 		std::memset(new_string, 0, new_length + 1);
 
-
 		if (m_length > 0) {
 			strcat_s(new_string, new_length + 1, m_string);
 		}
-		//strcat_s(new_string, new_length + 1, to_append);
 		strncat_s(new_string, new_length + 1, &to_append, 1);
 
 		delete[] m_string;
 		m_string = new_string;
 		m_length = new_length;
-
 		return *this;
 	}
 
 	String& append(const char* to_append) {
 
 		size_t length = strlen(to_append);
-
 		size_t new_length = m_length + length;
 
 		char* new_string = new char[new_length + 1];
 		std::memset(new_string, 0, new_length + 1);
 
-
 		if (m_length > 0) {
 			strcat_s(new_string, new_length + 1, m_string);
 		}
 		strcat_s(new_string, new_length + 1, to_append);
+		
 		delete[] m_string;
 		m_string = new_string;
 		m_length = new_length;
@@ -152,14 +134,14 @@ public:
 		return m_length;
 	}
 
-	//returns index of substring start point if not found returns -1
-	int find_substring(const char* substring) {
-		size_t length = strlen(substring);
+	//returns index of searched string start point if not found returns -1
+	int find(const char* str) {
+		size_t length = strlen(str);
 
 		size_t cout = 0;
 		for (size_t i = 0; i < m_length; i++) {
 			for (size_t k = 0; k < length; k++) {
-				if (m_string[i + k] == substring[k]) cout++;
+				if (m_string[i + k] == str[k]) cout++;
 				else {
 					i += cout;
 					cout = 0;
@@ -171,8 +153,8 @@ public:
 		return -1;
 	}
 
-	bool is_in(const char* substring) {
-		return find_substring(substring) >= 0;
+	bool contains(const char* substring) {
+		return find(substring) >= 0;
 	}
 
 	void toUpperCase() {
@@ -214,6 +196,15 @@ public:
 			m_string = new_string;
 			m_length = new_length;
 		}
+	}
+	
+	String substr(int start, int end) {
+		String new_string;
+		
+		for (int i = start; i < end; i++) {
+			new_string.append(m_string[i]);
+		}
+		return new_string;
 	}
 
 	char at(size_t index) {
@@ -261,25 +252,21 @@ std::istream& operator>>(std::istream& in, String& out)
 }
 
 
-
-
-
-//struct przetrzymuj¹cy atrybuty (property : value)
-struct atrybut {
+struct Atrybut {
 	String property;
 	String value;
 
-	atrybut()
+	Atrybut()
 		:property(""), value("")
 	{
 	}
 
-	atrybut(String property, String value)
+	Atrybut(String property, String value)
 		:property(property), value(value)
 	{
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const atrybut& obj)
+	friend std::ostream& operator<<(std::ostream& os, const Atrybut& obj)
 	{
 		os << obj.property << " : " << obj.value;
 		return os;
@@ -290,7 +277,6 @@ struct atrybut {
 //node dla listy pojedyczej
 template<typename T>
 struct NodeList {
-
 
 public:
 	T data;
@@ -315,7 +301,6 @@ private:
 	NodeList<T>* head;
 public:
 
-
 	ListSingleLinked()
 		: head(nullptr)
 	{
@@ -331,7 +316,6 @@ public:
 		head = nullptr;
 	}
 
-	//git
 	void add(T data) {
 
 		if (head == nullptr) {
@@ -346,7 +330,6 @@ public:
 		}
 	}
 
-	//git
 	void print() {
 		NodeList<T>* temp = head;
 
@@ -357,7 +340,6 @@ public:
 		std::cout << std::endl;
 	}
 
-	//git
 	int getLen() {
 		NodeList<T>* temp = head;
 		int len = 0;
@@ -369,6 +351,7 @@ public:
 	}
 
 	T* findByNazwa(T a);
+
 	bool remove(T a);
 
 	T* getElementByNumber(int number) {
@@ -386,8 +369,8 @@ public:
 };
 
 template<>
-atrybut* ListSingleLinked<atrybut>::findByNazwa(atrybut a) {
-	NodeList<atrybut>* temp = head;
+Atrybut* ListSingleLinked<Atrybut>::findByNazwa(Atrybut a) {
+	NodeList<Atrybut>* temp = head;
 	while (temp != nullptr) {
 		if (temp->data.property == a.property)
 			return &temp->data;
@@ -397,9 +380,9 @@ atrybut* ListSingleLinked<atrybut>::findByNazwa(atrybut a) {
 }
 
 template<>
-bool ListSingleLinked<atrybut>::remove(atrybut a) {
-	NodeList<atrybut>* temp = head;
-	NodeList<atrybut>* t = head->next;
+bool ListSingleLinked<Atrybut>::remove(Atrybut a) {
+	NodeList<Atrybut>* temp = head;
+	NodeList<Atrybut>* t = head->next;
 
 	if (head->data.property == a.property) {
 		delete head;
@@ -409,7 +392,7 @@ bool ListSingleLinked<atrybut>::remove(atrybut a) {
 
 	while (temp->next != nullptr) {
 		if (temp->next->data.property == a.property) {
-			NodeList<atrybut>* temp2 = temp->next;
+			NodeList<Atrybut>* temp2 = temp->next;
 
 			temp->next = temp->next->next;
 			delete temp2;
@@ -417,7 +400,6 @@ bool ListSingleLinked<atrybut>::remove(atrybut a) {
 		}
 		temp = temp->next;
 	}
-
 
 	return false;
 }
@@ -440,7 +422,6 @@ bool ListSingleLinked<String>::remove(String a) {
 		temp = temp->next;
 	}
 
-
 	return true;
 }
 
@@ -461,7 +442,7 @@ class Block {
 
 private:
 	ListSingleLinked<String> selektor;
-	ListSingleLinked<atrybut> atrybuty;
+	ListSingleLinked<Atrybut> atrybuty;
 public:
 	bool used;
 
@@ -482,10 +463,8 @@ public:
 		return *this;
 	}
 
-	void addAtribute(atrybut a) {
-		//sprawdzic czy juz taki atrybut jest jak tak to zamienic
-
-		atrybut* k = atrybuty.findByNazwa(a);
+	void addAtribute(Atrybut a) {
+		Atrybut* k = atrybuty.findByNazwa(a);
 		if (k != nullptr) {
 			k->value = a.value;
 		}
@@ -493,6 +472,7 @@ public:
 			atrybuty.add(a);
 		}
 	}
+
 	void addSelektor(String selector) {
 		selektor.add(selector);
 	}
@@ -522,17 +502,16 @@ public:
 		return *ptr;
 	}
 
-	String getValueByProperty(atrybut att) {
-		atrybut* ptr = atrybuty.findByNazwa(att);
+	String getValueByProperty(Atrybut att) {
+		Atrybut* ptr = atrybuty.findByNazwa(att);
 		if (ptr == nullptr) {
 			return "";
 		}
 		return ptr->value;
 	}
 
-
 	bool containsAttribute(String property) {
-		atrybut* ptr = atrybuty.findByNazwa(atrybut(property, ""));
+		Atrybut* ptr = atrybuty.findByNazwa(Atrybut(property, ""));
 		return ptr == nullptr ? false : true;
 	}
 
@@ -541,20 +520,17 @@ public:
 		return ptr == nullptr ? false : true;
 	}
 
-	bool deleteAll() {
-		//usowanie list obiekt zostaje (musi)
+	void deleteAll() {
 		selektor.~ListSingleLinked();
 		atrybuty.~ListSingleLinked();
-		return true;
 	}
 
 	bool removeAttribute(String n) {
-		return atrybuty.remove(atrybut(n, ""));
+		return atrybuty.remove(Atrybut(n, ""));
 	}
 };
 
 
-//Node dla double linked list
 struct BlocksNode {
 
 public:
@@ -614,7 +590,6 @@ public:
 		return nullptr;
 	}
 
-	//teraz powinno byc git
 	Block* getBlockByNumber(int n) {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
@@ -627,7 +602,7 @@ public:
 						c++;
 					}
 					if (n == c) {
-						return &temp->blocks[i];  ////////////////zmienilem na i - 1
+						return &temp->blocks[i];
 					}
 				}
 			}
@@ -637,8 +612,7 @@ public:
 	}
 
 
-	void addAttributesToAll(atrybut a) {
-		//std::cout << "add att all" << std::endl;
+	void addAttributesToAll(Atrybut a) {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
@@ -650,7 +624,6 @@ public:
 		}
 	}
 
-	//POWINNO BYC GIT
 	void addBlock(Block& block) {
 
 		if (head == nullptr) {
@@ -671,27 +644,12 @@ public:
 			}
 		}
 
-
 		temp->blocks[temp->size] = block;
 		temp->blocks[temp->size].used = true;
 		temp->size++;
 		temp->usedCount++;
-
-
-		////zapisz w wolnym miejscu blok
-		//for (int i = ROZ-1; i >=0 ; i--) {
-		//	if (temp->blocks[i].used == true) {
-		//		temp->blocks[i+1] = block;
-		//		temp->blocks[i+1].used = true;
-		//		temp->size++;
-		//		temp->usedCount++;
-		//		return;
-		//	}
-		//}
 	}
 
-	//GIT
-	//printuje tylko bloki used == true
 	void printBlocks() {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
@@ -704,8 +662,6 @@ public:
 		}
 	}
 
-	//GIt
-	//liczba sekcji
 	size_t numberOfSections() {
 		size_t result = 0;
 		BlocksNode* tmp = head;
@@ -718,7 +674,6 @@ public:
 		return result;
 	}
 
-	//GIT
 	//liczba selektorow w sekcji n				 i,S,?
 	int numberOfSelectorsInSection(int n) {
 		Block* tmp = getBlockByNumber(n);
@@ -728,7 +683,6 @@ public:
 		return tmp->getSelectorLen();
 	};
 
-	//GIT
 	// liczba atrybutow w sekcji n				 i,A,?
 	int numberOfAtributesInSection(int n) {
 		Block* tmp = getBlockByNumber(n);
@@ -738,7 +692,6 @@ public:
 		return tmp->getAtributesLen();
 	}
 
-	//GIT
 	//find j-th selector in i-th section		  i,S,j
 	String findSelectorInBlock(int index, int j) {
 
@@ -755,7 +708,7 @@ public:
 		if (tmp == nullptr) {
 			return "";
 		}
-		return tmp->getValueByProperty(atrybut(property, ""));
+		return tmp->getValueByProperty(Atrybut(property, ""));
 	}
 
 	//lizcba wyst¹pien atrybutu w szystkich sekcjach	 n,A,?
@@ -810,7 +763,6 @@ public:
 	}
 
 
-	///chyba git
 	bool deleteBlock(int index) {
 		Block* block = getBlockByNumber(index);
 		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
@@ -864,7 +816,7 @@ public:
 			for (int i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].used == true) {
 					if (tmp->blocks[i].containsSelector(z)) {
-						String s = tmp->blocks[i].getValueByProperty(atrybut(n, ""));
+						String s = tmp->blocks[i].getValueByProperty(Atrybut(n, ""));
 						if (s.length() > 0) {
 							result = s;
 						}
@@ -875,7 +827,6 @@ public:
 		}
 		return result;
 	}
-
 };
 
 
@@ -946,7 +897,7 @@ int main() {
 				block->used = true;
 				selectors = true;
 				if (property.length() > 0) {
-					block->addAtribute(atrybut(property, value));
+					block->addAtribute(Atrybut(property, value));
 
 				}
 				if (block->getAtributesLen() > 0) {
@@ -965,7 +916,7 @@ int main() {
 					if (tmp.at(k) == '}') {
 
 						if (property.length() > 0 && value.length() > 0) {
-							block->addAtribute(atrybut(property, value));
+							block->addAtribute(Atrybut(property, value));
 							property = "";
 							value = "";
 						}
@@ -985,7 +936,7 @@ int main() {
 					}
 					if (tmp.at(k) == ';') {
 						if (property.length() > 0 && value.length() > 0) {
-							block->addAtribute(atrybut(property, value));
+							block->addAtribute(Atrybut(property, value));
 						}
 						property = "";
 						value = "";
@@ -1007,8 +958,8 @@ int main() {
 		}
 		else if (commands) {
 
+			//Do wczytywania jeœli jest spacja w selektorze
 			String x;
-			//jesli nie ma , na koncu
 			if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
 				while (true) {
 					std::cin >> x;
@@ -1017,9 +968,6 @@ int main() {
 					tmp.append(" ");
 					tmp.append(x.c_str());
 					if (x.at(x.length() - 4) == ',') {
-						
-						//std::cout << "sdf" <<  x.at(x.length() - 1) << std::endl;
-						//x.pop_back();
 						break;
 					}
 				}
@@ -1037,7 +985,7 @@ int main() {
 				selectors = true;
 				atributes = false;
 			}
-			else if (tmp.is_in(",S,?")) {
+			else if (tmp.contains(",S,?")) {
 				// i, S, ? – wypisz liczbê selektorów dla sekcji nr i(numery zaczynaj¹ siê od 1), jeœli nie ma takiego bloku pomiñ;
 				int n = atoi(tmp.c_str());
 
@@ -1049,7 +997,6 @@ int main() {
 						int result = bloki.numberOfSelectorOfName(tmp);
 						std::cout << tmp << ",S,? == " << result << std::endl;
 					}
-
 				}
 				else {
 					int result = bloki.numberOfSelectorsInSection(n);
@@ -1057,10 +1004,8 @@ int main() {
 						std::cout << n << ",S,? == " << result << std::endl;
 					}
 				}
-
-
 			}
-			else if (tmp.is_in(",A,?")) {
+			else if (tmp.contains(",A,?")) {
 				// wypisz liczbê atrybutów dla sekcji nr i, jeœli nie ma takiego bloku lub sekcji pomiñ;
 				int n = atoi(tmp.c_str());
 
@@ -1078,39 +1023,35 @@ int main() {
 						std::cout << n << ",A,? == " << result << std::endl;
 					}
 				}
-
 			}
-			else if (tmp.is_in(",S,")) {
-
+			else if (tmp.contains(",S,")) {
 				//i,S,j – wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutów zaczynaj¹ siê od 1) jeœli nie
 				// ma sekcji lub selektora pomiñ;
 
-				int i = atoi(tmp.c_str()); //find first number
-				int j = atoi(tmp.c_str() + tmp.find_substring(",") + 3); //find third number
+				int i = atoi(tmp.c_str());
+				int j = atoi(tmp.c_str() + tmp.find(",") + 3);
 				String result = bloki.findSelectorInBlock(i, j);
 
 				if (result.length() > 0) {
 					std::cout << i << ",S," << j << " == " << result << std::endl;
 				}
 			}
-			else if (tmp.is_in(",A,")) {
+			else if (tmp.contains(",A,")) {
 				// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
 
-				int i = atoi(tmp.c_str()); //find first number
-				String n = tmp.c_str() + tmp.find_substring(",") + 3;
+				int i = atoi(tmp.c_str());
+				String n = tmp.c_str() + tmp.find(",") + 3;
 				String result = bloki.findValueInSectionByPropertyName(i, n);
 
 				if (result.length() > 0) {
 					std::cout << i << ",A," << n << " == " << result << std::endl;
 				}
 			}
-			else if (tmp.is_in(",E,")) {
+			else if (tmp.contains(",E,")) {
 				//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
 				//bierzemy ostatnie.W przypadku braku pomiñ;
 
-
-				//tu cos na stosie violation wywala
-				String n = tmp.c_str() + tmp.find_substring(",") + 3;
+				String n = tmp.c_str() + tmp.find(",") + 3;
 				tmp.cut(tmp.length() - 4 - n.length());
 				String z = tmp;
 
@@ -1119,28 +1060,19 @@ int main() {
 				if (result.length() > 0) {
 					std::cout << z << ",E," << n << " == " << result << std::endl;
 				}
-
 			}
-			else if (tmp.is_in(",D,*")) {
+			else if (tmp.contains(",D,*")) {
 				int i = atoi(tmp.c_str());
 
-				bool r = bloki.deleteBlock(i);
-
-				if (r) {
+				if (bloki.deleteBlock(i)) {
 					std::cout << i << ",D,*" << " == deleted" << std::endl;
 				}
 			}
-			else if (tmp.is_in(",D,")) {
-				int i = atoi(tmp.c_str()); //find first number
-				String n = tmp.c_str() + tmp.find_substring(",") + 3;
+			else if (tmp.contains(",D,")) {
+				int i = atoi(tmp.c_str());
+				String n = tmp.c_str() + tmp.find(",") + 3;
 
-
-				///Ÿle pokazuje pokazuje deleted nawet jak nie usunelo nic
-				// jesli n nie istnieje 
-
-				bool r = bloki.removeInIthBlockAttribute(i, n);
-
-				if (r) {
+				if (bloki.removeInIthBlockAttribute(i, n)) {
 					std::cout << i << ",D," << n << " == deleted" << std::endl;
 
 				}
