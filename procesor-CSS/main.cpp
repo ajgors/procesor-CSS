@@ -450,7 +450,7 @@ String* ListSingleLinked<String>::findByNazwa(String a) {
 	NodeList<String>* temp = head;
 	while (temp != nullptr) {
 		if (temp->data == a)
-			return &temp->data;
+			return &(temp->data);
 		temp = temp->next;
 	}
 	return nullptr;
@@ -779,7 +779,7 @@ public:
 		BlocksNode* tmp = head;
 		int count = 0;
 		while (tmp != nullptr) {
-			for (int i = 0, k = 0; i < ROZ; i++) {
+			for (int i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].used == true) {
 					if (tmp->blocks[i].containsSelector(selector)) {
 						count++;
@@ -943,7 +943,12 @@ int main() {
 				atributes = false;
 				block->used = true;
 				selectors = true;
-				bloki.addBlock(*block);
+				if (block->getAtributesLen() > 0) {
+					bloki.addBlock(*block);
+				}
+				else {
+					delete block;
+				}
 				block = new Block();
 				value = "";
 				property = "";
@@ -996,19 +1001,19 @@ int main() {
 		}
 		else if (commands) {
 
-			//String x;
+			String x;
 			//jesli nie ma , na koncu
-		/*	if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
+			if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
 				while (true) {
-					std::cin >> s;
+					std::cin >> x;
 					tmp.append(" ");
-					tmp.append(s.c_str());
-					if (s.at(s.length() - 4) == ',') {
-						s.pop_back();
+					tmp.append(x.c_str());
+					if (x.at(x.length() - 4) == ',') {
+						x.pop_back();
 						break;
 					}
 				}
-			}*/
+			}
 
 			if (tmp == "?") {
 				int number = bloki.numberOfSections();
