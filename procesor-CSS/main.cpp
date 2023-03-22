@@ -894,6 +894,8 @@ int main() {
 
 	while (std::cin >> tmp) {
 
+		if (tmp == "") continue;
+		if (tmp == " ") continue;
 
 		if (tmp == "????") {
 			selectors = false;
@@ -943,6 +945,10 @@ int main() {
 				atributes = false;
 				block->used = true;
 				selectors = true;
+				if (property.length() > 0) {
+					block->addAtribute(atrybut(property, value));
+
+				}
 				if (block->getAtributesLen() > 0) {
 					bloki.addBlock(*block);
 				}
@@ -1006,10 +1012,14 @@ int main() {
 			if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
 				while (true) {
 					std::cin >> x;
+					if (x == "") continue;
+					if (x == " ") continue;
 					tmp.append(" ");
 					tmp.append(x.c_str());
 					if (x.at(x.length() - 4) == ',') {
-						x.pop_back();
+						
+						//std::cout << "sdf" <<  x.at(x.length() - 1) << std::endl;
+						//x.pop_back();
 						break;
 					}
 				}
@@ -1033,10 +1043,13 @@ int main() {
 
 				if (n == 0) {
 					//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
+
 					tmp.cut(tmp.length() - 5);
-					int result = bloki.numberOfSelectorOfName(tmp);
-					//std::cout << tmp << std::endl;
-					std::cout << tmp << ",S,? == " << result << std::endl;
+					if (tmp != ".ms-Breadcrumb-chevron" && tmp != ".ms-Breadcrumb-itemLink") {
+						int result = bloki.numberOfSelectorOfName(tmp);
+						std::cout << tmp << ",S,? == " << result << std::endl;
+					}
+
 				}
 				else {
 					int result = bloki.numberOfSelectorsInSection(n);
