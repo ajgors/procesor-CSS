@@ -413,7 +413,7 @@ bool ListSingleLinked<atrybut>::remove(atrybut a) {
 
 			temp->next = temp->next->next;
 			delete temp2;
-			break;
+			return true;
 		}
 		temp = temp->next;
 	}
@@ -549,8 +549,7 @@ public:
 	}
 
 	bool removeAttribute(String n) {
-		atrybuty.remove(atrybut(n, ""));
-		return true;
+		return atrybuty.remove(atrybut(n, ""));
 	}
 };
 
@@ -724,7 +723,7 @@ public:
 	int numberOfSelectorsInSection(int n) {
 		Block* tmp = getBlockByNumber(n);
 		if (tmp == nullptr) {
-			return 0;
+			return -1;
 		}
 		return tmp->getSelectorLen();
 	};
@@ -825,9 +824,9 @@ public:
 		block->deleteAll();
 
 		//usuwanie wezla jesli jest pusty
-		if (tmp->usedCount == 0) {
+		/*if (tmp->usedCount == 0) {
 			deleteEmptyNode(tmp);
-		}
+		}*/
 
 		return true;
 	}
@@ -841,7 +840,10 @@ public:
 			return false;
 		}
 
-		block->removeAttribute(n);
+		bool x = block->removeAttribute(n);
+
+		if (x == false) return false;
+
 		if (block->getAtributesLen() == 0) {
 			block->used = false;
 			tmp->usedCount--;
@@ -849,9 +851,9 @@ public:
 		}
 
 		//usuwanie wezla jesli jest pusty
-		if (tmp->usedCount == 0) {
+		/*if (tmp->usedCount == 0) {
 			deleteEmptyNode(tmp);
-		}
+		}*/
 		return true;
 	};
 
@@ -892,19 +894,13 @@ int main() {
 
 	while (std::cin >> tmp) {
 
-		if (tmp == "") continue;
-		//if (atributes == false && tmp == "{") {
-		//	selectors = false;
-		//	atributes = true;
-		//}
-
 
 		if (tmp == "????") {
 			selectors = false;
 			atributes = false;
 			commands = true;
 		}
-		int i = 0;
+		int k = 0;
 
 		if (selectors) {
 
@@ -913,30 +909,31 @@ int main() {
 				selector.append(" ");
 			}
 
-			for (; i < tmp.length(); i++) {
-				if (tmp.at(i) == '{') {
+			for (; k < tmp.length(); k++) {
+				if (tmp.at(k) == '{') {
 					if (selector.at(selector.length() - 1) == ' ') {
 						selector.pop_back();
 					}
-
+					if (selector.length() > 0) {
+						block->addSelektor(selector);
+					}
 					atributes = true;
 					selectors = false;
-					block->addSelektor(selector);
 					selector = "";
 					break;
 				}
-				if (tmp.at(i) == ',') {
+				if (tmp.at(k) == ',') {
 					block->addSelektor(selector);
 					selector = "";
 				}
 				else {
-					char s = tmp.at(i);
+					char s = tmp.at(k);
 					selector.append(s);
 				}
 			}
 		}
 		if (atributes) {
-		
+
 			if (value.length() > 0 && tmp != "}") {
 				value.append(" ");
 			}
@@ -952,11 +949,11 @@ int main() {
 				property = "";
 			}
 			else {
-				for (; i < tmp.length(); i++) {
-					if (tmp.at(i) == '{') continue;
-					if (tmp.at(i) == '}') {
+				for (; k < tmp.length(); k++) {
+					if (tmp.at(k) == '{') continue;
+					if (tmp.at(k) == '}') {
 
-						if (property.length() > 0) {
+						if (property.length() > 0 && value.length() > 0) {
 							block->addAtribute(atrybut(property, value));
 							property = "";
 							value = "";
@@ -969,38 +966,39 @@ int main() {
 						block = new Block();
 						break;
 					}
-					
 
-					if (tmp.at(i) == ':') {
+
+					if (tmp.at(k) == ':') {
 						now_prop = false;
 						continue;
 					}
-					if (tmp.at(i) == ';') {
-						block->addAtribute(atrybut(property, value));
+					if (tmp.at(k) == ';') {
+						if (property.length() > 0 && value.length() > 0) {
+							block->addAtribute(atrybut(property, value));
+						}
 						property = "";
 						value = "";
 						now_prop = true;
 						continue;
 					}
 					if (now_prop) {
-						property.append(tmp.at(i));
+						property.append(tmp.at(k));
 					}
 					else {
-						value.append(tmp.at(i));
+						value.append(tmp.at(k));
 					}
-					if (tmp.at(i) == ',') {
+					if (tmp.at(k) == ',') {
 						value.append(" ");
 					}
-					
+
 				}
 			}
 		}
 		else if (commands) {
-			//std::cout << "kom" << std::endl;
 
-			String s;
+			//String x;
 			//jesli nie ma , na koncu
-			if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
+		/*	if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
 				while (true) {
 					std::cin >> s;
 					tmp.append(" ");
@@ -1010,10 +1008,11 @@ int main() {
 						break;
 					}
 				}
-			}
+			}*/
 
 			if (tmp == "?") {
-				std::cout << "? == " << bloki.numberOfSections() << std::endl;
+				int number = bloki.numberOfSections();
+				std::cout << "? == " << number << std::endl;
 			}
 			if (tmp == ".") {
 				bloki.printBlocks();
@@ -1036,7 +1035,7 @@ int main() {
 				}
 				else {
 					int result = bloki.numberOfSelectorsInSection(n);
-					if (result != 0) {
+					if (result != -1) {
 						std::cout << n << ",S,? == " << result << std::endl;
 					}
 				}
@@ -1116,6 +1115,10 @@ int main() {
 			else if (tmp.is_in(",D,")) {
 				int i = atoi(tmp.c_str()); //find first number
 				String n = tmp.c_str() + tmp.find_substring(",") + 3;
+
+
+				///Ÿle pokazuje pokazuje deleted nawet jak nie usunelo nic
+				// jesli n nie istnieje 
 
 				bool r = bloki.removeInIthBlockAttribute(i, n);
 
