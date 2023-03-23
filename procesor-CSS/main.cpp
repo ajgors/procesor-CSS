@@ -4,22 +4,22 @@
 #define ROZ 8
 
 
-struct Atrybut {
+struct Attribute {
 	String property;
 	String value;
 
-	Atrybut()
+	Attribute()
 		:property(""), value("")
 	{
 	}
 
-	Atrybut(String property, String value)
+	Attribute(const String& property, const String& value)
 		:property(property), value(value)
 	{
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Atrybut& obj){
-		os << obj.property << ": " << obj.value;
+	friend std::ostream& operator<<(std::ostream& os, const Attribute& att) {
+		os << att.property << ": " << att.value;
 		return os;
 	}
 };
@@ -66,7 +66,7 @@ public:
 		head = nullptr;
 	}
 
-	void addAtEnd(T data) {
+	void addAtEnd(const T& data) {
 
 		if (head == nullptr) {
 			head = new ListNode<T>(data);
@@ -119,8 +119,8 @@ public:
 };
 
 template<>
-Atrybut* List<Atrybut>::findByName(Atrybut a) {
-	ListNode<Atrybut>* temp = head;
+Attribute* List<Attribute>::findByName(Attribute a) {
+	ListNode<Attribute>* temp = head;
 	while (temp != nullptr) {
 		if (temp->data.property == a.property)
 			return &temp->data;
@@ -130,9 +130,9 @@ Atrybut* List<Atrybut>::findByName(Atrybut a) {
 }
 
 template<>
-bool List<Atrybut>::remove(Atrybut a) {
-	ListNode<Atrybut>* temp = head;
-	ListNode<Atrybut>* t = head->next;
+bool List<Attribute>::remove(Attribute a) {
+	ListNode<Attribute>* temp = head;
+	ListNode<Attribute>* t = head->next;
 
 	if (head->data.property == a.property) {
 		delete head;
@@ -142,7 +142,7 @@ bool List<Atrybut>::remove(Atrybut a) {
 
 	while (temp->next != nullptr) {
 		if (temp->next->data.property == a.property) {
-			ListNode<Atrybut>* temp2 = temp->next;
+			ListNode<Attribute>* temp2 = temp->next;
 
 			temp->next = temp->next->next;
 			delete temp2;
@@ -192,7 +192,7 @@ class Block {
 
 private:
 	List<String> selectors;
-	List<Atrybut> attributes;
+	List<Attribute> attributes;
 public:
 	bool used;
 
@@ -213,8 +213,8 @@ public:
 		return *this;
 	}
 
-	void addAttribute(Atrybut a) {
-		Atrybut* k = attributes.findByName(a);
+	void addAttribute(const Attribute& a) {
+		Attribute* k = attributes.findByName(a);
 		if (k != nullptr) {
 			k->value = a.value;
 		}
@@ -223,7 +223,7 @@ public:
 		}
 	}
 
-	void addSelector(String selector) {
+	void addSelector(String& selector) {
 		selectors.addAtEnd(selector);
 	}
 
@@ -244,7 +244,7 @@ public:
 
 	String getSelectorByNumber(int i) {
 
-		String* ptr = selectors.getElementByNumber(i-1);
+		String* ptr = selectors.getElementByNumber(i - 1);
 
 		if (ptr == nullptr) {
 			return "";
@@ -252,16 +252,16 @@ public:
 		return *ptr;
 	}
 
-	String getValueByProperty(Atrybut att) {
-		Atrybut* ptr = attributes.findByName(att);
+	String getValueByProperty(const Attribute& att) {
+		Attribute* ptr = attributes.findByName(att);
 		if (ptr == nullptr) {
 			return "";
 		}
 		return ptr->value;
 	}
 
-	bool containsAttribute(String property) {
-		Atrybut* ptr = attributes.findByName(Atrybut(property, ""));
+	bool containsAttribute(String& property) {
+		Attribute* ptr = attributes.findByName(Attribute(property, ""));
 		return ptr == nullptr ? false : true;
 	}
 
@@ -275,8 +275,8 @@ public:
 		attributes.~List();
 	}
 
-	bool removeAttribute(String n) {
-		return attributes.remove(Atrybut(n, ""));
+	bool removeAttribute(String& n) {
+		return attributes.remove(Attribute(n, ""));
 	}
 };
 
@@ -325,7 +325,7 @@ public:
 			temp = temp->next;
 		}
 	}
-	
+
 	void printBlocks() {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
@@ -371,18 +371,6 @@ public:
 			temp = temp->next;
 		}
 		return nullptr;
-	}
-
-	void addAttributesToAll(Atrybut a) {
-		BlocksNode* temp = head;
-		while (temp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
-				if (temp->blocks[i].used == true) {
-					temp->blocks[i].addAttribute(a);
-				}
-			}
-			temp = temp->next;
-		}
 	}
 
 	void addBlock(Block& block) {
@@ -452,16 +440,16 @@ public:
 	};
 
 	// dla itej sekcji value of property			i,A,n
-	String findValueInSectionByPropertyName(int index, String property) {
+	String findValueInSectionByPropertyName(int index, String& property) {
 		Block* tmp = getBlockByNumber(index);
 		if (tmp == nullptr) {
 			return "";
 		}
-		return tmp->getValueByProperty(Atrybut(property, ""));
+		return tmp->getValueByProperty(Attribute(property, ""));
 	}
 
 	//lizcba wyst¹pien atrybutu w szystkich sekcjach	 n,A,?
-	int numberOfAtributes(String property) {
+	int numberOfAttributesOfName(String& property) {
 		BlocksNode* tmp = head;
 		int count = 0;
 		while (tmp != nullptr) {
@@ -493,65 +481,64 @@ public:
 		return count;
 	}
 
-	void deleteEmptyNode(BlocksNode* tmp) {
-		if (tmp != head) {
-			if (tmp->next != nullptr) {
-				if (tmp->prev != nullptr) {
-					tmp->prev->next = tmp->next;
-				}
-				tmp->next->prev = tmp->prev;
-			}
-			delete tmp;
+	void DeleteNode(BlocksNode* node) {
+		if (node == nullptr) {
+			return;
+		}
+		if (node->next != nullptr) {
+			node->next->prev = node->prev;
+		}
+		if (node == head) {
+			head = node->next;
 		}
 		else {
-			BlocksNode* newhead = new BlocksNode();
-			delete head;
-			head = newhead;
+			node->prev->next = node->next;
 		}
+		delete node;
 	}
 
 	bool deleteBlock(int index) {
 		Block* block = getBlockByNumber(index);
-		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
+		BlocksNode* blocksNode = getBlocksNodeByBlockNumber(index);
 
 		if (block == nullptr) {
 			return false;
 		}
 
 		block->used = false;
-		tmp->usedCount--;
+		blocksNode->usedCount--;
 		block->deleteAll();
 
 		//usuwanie wezla jesli jest pusty
-		/*if (tmp->usedCount == 0) {
-			deleteEmptyNode(tmp);
-		}*/
+		if (blocksNode->usedCount == 0) {
+			DeleteNode(blocksNode);
+		}
 
 		return true;
 	}
 
-	bool removeInIthBlockAttribute(int index, String n) {
-		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
+	bool removeInIthBlockAttribute(int index, String& n) {
+		BlocksNode* blocksNode = getBlocksNodeByBlockNumber(index);
 		Block* block = getBlockByNumber(index);
 
 		if (block == nullptr) {
 			return false;
 		}
 
-		bool x = block->removeAttribute(n);
+		bool r = block->removeAttribute(n);
 
-		if (x == false) return false;
+		if (r == false) return false;
 
 		if (block->getAtributesNumber() == 0) {
 			block->used = false;
-			tmp->usedCount--;
+			blocksNode->usedCount--;
 			block->deleteAll();
 		}
 
 		//usuwanie wezla jesli jest pusty
-		/*if (tmp->usedCount == 0) {
-			deleteEmptyNode(tmp);
-		}*/
+		if (blocksNode->usedCount == 0) {
+			DeleteNode(blocksNode);
+		}
 		return true;
 	};
 
@@ -562,7 +549,7 @@ public:
 			for (int i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].used == true) {
 					if (tmp->blocks[i].containsSelector(z)) {
-						String s = tmp->blocks[i].getValueByProperty(Atrybut(n, ""));
+						String s = tmp->blocks[i].getValueByProperty(Attribute(n, ""));
 						if (s.length() > 0) {
 							result = s;
 						}
@@ -614,8 +601,8 @@ int main() {
 			}
 
 			for (; k < input.length(); k++) {
-				if (input.at(k) == '{') {
-					if (selector.at(selector.length() - 1) == ' ') {
+				if (input[k] == '{') {
+					if (selector[selector.length() - 1] == ' ') {
 						selector.pop_back();
 					}
 					if (selector.length() > 0) {
@@ -626,12 +613,12 @@ int main() {
 					selector = "";
 					break;
 				}
-				if (input.at(k) == ',') {
+				if (input[k] == ',') {
 					block->addSelector(selector);
 					selector = "";
 				}
 				else {
-					char s = input.at(k);
+					char s = input[k];
 					selector.append(s);
 				}
 			}
@@ -648,7 +635,7 @@ int main() {
 				block->used = true;
 				selectors = true;
 				if (property.length() > 0) {
-					block->addAttribute(Atrybut(property, value));
+					block->addAttribute(Attribute(property, value));
 
 				}
 				if (block->getAtributesNumber() > 0) {
@@ -663,11 +650,11 @@ int main() {
 			}
 			else {
 				for (; k < input.length(); k++) {
-					if (input.at(k) == '{') continue;
-					if (input.at(k) == '}') {
+					if (input[k] == '{') continue;
+					if (input[k] == '}') {
 
 						if (property.length() > 0 && value.length() > 0) {
-							block->addAttribute(Atrybut(property, value));
+							block->addAttribute(Attribute(property, value));
 							property = "";
 							value = "";
 						}
@@ -680,13 +667,13 @@ int main() {
 						break;
 					}
 
-					if (input.at(k) == ':') {
+					if (input[k] == ':') {
 						now_prop = false;
 						continue;
 					}
-					if (input.at(k) == ';') {
+					if (input[k] == ';') {
 						if (property.length() > 0 && value.length() > 0) {
-							block->addAttribute(Atrybut(property, value));
+							block->addAttribute(Attribute(property, value));
 						}
 						property = "";
 						value = "";
@@ -694,12 +681,12 @@ int main() {
 						continue;
 					}
 					if (now_prop) {
-						property.append(input.at(k));
+						property.append(input[k]);
 					}
 					else {
-						value.append(input.at(k));
+						value.append(input[k]);
 					}
-					if (input.at(k) == ',') {
+					if (input[k] == ',') {
 						value.append(" ");
 					}
 
@@ -717,7 +704,7 @@ int main() {
 					if (tmp == " ") continue;
 					input.append(" ");
 					input.append(tmp.c_str());
-					if (tmp.at(tmp.length() - 4) == ',') {
+					if (tmp[tmp.length() - 4] == ',') {
 						break;
 					}
 				}
@@ -759,7 +746,7 @@ int main() {
 					//pojedynczego bloku duplikaty powinny zostaæ usuniête na etapie wczytywania).Mo¿liwe jest 0;
 					input.cut(input.length() - 5);
 
-					int result = blocks.numberOfAtributes(input);
+					int result = blocks.numberOfAttributesOfName(input);
 					std::cout << input << ",A,? == " << result << std::endl;
 				}
 				else {
