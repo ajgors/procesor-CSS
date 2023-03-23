@@ -1,255 +1,7 @@
 #include <iostream>
-//#include "stringImp.h"
+#include "stringImp.h"
 #include "string.h"
 #define ROZ 8
-
-
-class String {
-
-private:
-	size_t m_length;
-	char* m_string;
-public:
-
-	String()
-		:m_length(0), m_string(nullptr)
-	{
-	}
-
-	~String() {
-		delete[] m_string;
-	}
-
-	String(const char* string)
-		:m_length(strlen(string))
-	{
-		m_string = new char[m_length + 1];
-		memcpy(m_string, string, m_length + 1);
-	}
-
-	String(const String& other) {
-		m_length = other.m_length;
-		m_string = new char[other.m_length + 1];
-
-		if (m_length > 0) {
-			memcpy(m_string, other.m_string, m_length + 1);
-		}
-	}
-
-	String& operator=(const String& string) {
-
-		if (this != &string) {
-			m_length = string.m_length;
-			delete[] m_string;
-			m_string = new char[m_length + 1];
-			strcpy_s(m_string, m_length + 1, string.m_string);
-		}
-		return *this;
-	}
-
-	String& operator=(const char* string) {
-
-		m_length = strlen(string);
-		delete[] m_string;
-		m_string = new char[m_length + 1];
-		strcpy_s(m_string, m_length + 1, string);
-
-		return *this;
-	}
-
-	bool operator==(String& other) {
-		return strcmp(m_string, other.m_string) == 0;
-	}
-
-	bool operator==(const char* other) {
-		return strcmp(m_string, other) == 0;
-	}
-
-	bool operator!=(const char* other) {
-		return strcmp(m_string, other) != 0;
-	}
-
-	void pop_back() {
-		if (m_length > 0) {
-			m_length--;
-			char* new_string = new char[m_length + 1];
-			memcpy(new_string, m_string, m_length);
-			new_string[m_length] = '\0';
-			delete[] m_string;
-			m_string = new_string;
-		}
-	}
-
-	char& operator[](size_t index) {
-		return m_string[index];
-	}
-
-	void print() {
-		std::cout << m_string << std::endl;
-	}
-
-	String append(char to_append) {
-
-		size_t new_length = m_length + 1;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		if (m_length > 0) {
-			strcat_s(new_string, new_length + 1, m_string);
-		}
-		strncat_s(new_string, new_length + 1, &to_append, 1);
-
-		delete[] m_string;
-		m_string = new_string;
-		m_length = new_length;
-		return *this;
-	}
-
-	String& append(const char* to_append) {
-
-		size_t length = strlen(to_append);
-		size_t new_length = m_length + length;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		if (m_length > 0) {
-			strcat_s(new_string, new_length + 1, m_string);
-		}
-		strcat_s(new_string, new_length + 1, to_append);
-		
-		delete[] m_string;
-		m_string = new_string;
-		m_length = new_length;
-
-		return *this;
-	}
-
-	String& operator+(const char* to_append) {
-		return append(to_append);
-	}
-
-	size_t length() {
-		return m_length;
-	}
-
-	//returns index of searched string start point if not found returns -1
-	int find(const char* str) {
-		size_t length = strlen(str);
-
-		size_t cout = 0;
-		for (size_t i = 0; i < m_length; i++) {
-			for (size_t k = 0; k < length; k++) {
-				if (m_string[i + k] == str[k]) cout++;
-				else {
-					i += cout;
-					cout = 0;
-					break;
-				}
-				if (cout == length) return i;
-			}
-		}
-		return -1;
-	}
-
-	bool contains(const char* substring) {
-		return find(substring) >= 0;
-	}
-
-	void toUpperCase() {
-		for (size_t i = 0; i < m_length; i++) {
-			m_string[i] = toupper(m_string[i]);
-		}
-	}
-	void toLowerCase() {
-		for (size_t i = 0; i < m_length; i++) {
-			m_string[i] = tolower(m_string[i]);
-		}
-	}
-
-	//from index to end
-	void slice(size_t index) {
-		size_t new_length = m_length - index;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		if (new_string) {
-			strncat_s(new_string, new_length + 1, m_string + index, new_length);
-			delete[] m_string;
-			m_string = new_string;
-			m_length = new_length;
-		}
-	}
-
-	//from 0 to index
-	void cut(size_t index) {
-		size_t new_length = index + 1;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		if (new_string) {
-			strncat_s(new_string, new_length + 1, m_string, new_length);
-			delete[] m_string;
-			m_string = new_string;
-			m_length = new_length;
-		}
-	}
-	
-	String substr(int start, int end) {
-		String new_string;
-		
-		for (int i = start; i < end; i++) {
-			new_string.append(m_string[i]);
-		}
-		return new_string;
-	}
-
-	char at(size_t index) {
-		return m_string[index];
-	}
-
-	char* c_str() {
-		return m_string;
-	}
-
-	void clear() {
-		delete[] m_string;
-		m_string = new char[1];
-		m_length = 1;
-	}
-
-	int countChar(char c) {
-		int count = 0;
-		for (size_t i = 0; i < m_length; i++) {
-			if (m_string[i] == c) count++;
-		}
-		return count;
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, const String& string);
-	friend std::istream& operator>>(std::istream& is, String& out);
-};
-
-
-std::ostream& operator<<(std::ostream& os, const String& string)
-{
-	os << string.m_string;
-	return os;
-}
-
-
-std::istream& operator>>(std::istream& in, String& out)
-{
-	char* buffer = new char[100];
-	memset(buffer, 0, 100);
-	in >> buffer;
-	out = buffer;
-	delete[] buffer;
-	return in;
-}
 
 
 struct Atrybut {
@@ -266,72 +18,70 @@ struct Atrybut {
 	{
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Atrybut& obj)
-	{
-		os << obj.property << " : " << obj.value;
+	friend std::ostream& operator<<(std::ostream& os, const Atrybut& obj){
+		os << obj.property << ": " << obj.value;
 		return os;
 	}
 };
 
 
-//node dla listy pojedyczej
 template<typename T>
-struct NodeList {
+struct ListNode {
 
 public:
 	T data;
-	NodeList* next;
+	ListNode* next;
 
-	NodeList()
+	ListNode()
 		: next(nullptr)
 	{
 	}
 
-	NodeList(const T& data)
-		: next(nullptr), data(data)
+	ListNode(const T& data)
+		: data(data), next(nullptr)
 	{
 	}
 };
 
 
 template<typename T>
-class ListSingleLinked {
+class List {
 
 private:
-	NodeList<T>* head;
+	ListNode<T>* head;
 public:
 
-	ListSingleLinked()
+	List()
 		: head(nullptr)
 	{
 	}
 
-	~ListSingleLinked() {
-		NodeList<T>* temp = head;
+	~List() {
+		ListNode<T>* temp = head;
 		while (temp != nullptr) {
-			NodeList<T>* next = temp->next;
+			ListNode<T>* next = temp->next;
 			delete temp;
 			temp = next;
 		}
 		head = nullptr;
 	}
 
-	void add(T data) {
+	void addAtEnd(T data) {
 
 		if (head == nullptr) {
-			head = new NodeList<T>(data);
+			head = new ListNode<T>(data);
 		}
 		else {
-			NodeList<T>* temp = head;
+			ListNode<T>* temp = head;
 			while (temp->next != nullptr) {
 				temp = temp->next;
 			}
-			temp->next = new NodeList<T>(data);
+			temp->next = new ListNode<T>(data);
 		}
 	}
 
 	void print() {
-		NodeList<T>* temp = head;
+		ListNode<T>* temp = head;
 
 		while (temp != nullptr) {
 			std::cout << temp->data << ", ";
@@ -340,8 +90,8 @@ public:
 		std::cout << std::endl;
 	}
 
-	int getLen() {
-		NodeList<T>* temp = head;
+	int getLength() {
+		ListNode<T>* temp = head;
 		int len = 0;
 		while (temp != nullptr) {
 			len++;
@@ -350,13 +100,13 @@ public:
 		return len;
 	}
 
-	T* findByNazwa(T a);
+	T* findByName(T a);
 
 	bool remove(T a);
 
 	T* getElementByNumber(int number) {
-		NodeList<T>* temp = head;
-		int i = 1;
+		ListNode<T>* temp = head;
+		int i = 0;
 		while (temp != nullptr) {
 			if (i == number)
 				return &temp->data;
@@ -369,8 +119,8 @@ public:
 };
 
 template<>
-Atrybut* ListSingleLinked<Atrybut>::findByNazwa(Atrybut a) {
-	NodeList<Atrybut>* temp = head;
+Atrybut* List<Atrybut>::findByName(Atrybut a) {
+	ListNode<Atrybut>* temp = head;
 	while (temp != nullptr) {
 		if (temp->data.property == a.property)
 			return &temp->data;
@@ -380,9 +130,9 @@ Atrybut* ListSingleLinked<Atrybut>::findByNazwa(Atrybut a) {
 }
 
 template<>
-bool ListSingleLinked<Atrybut>::remove(Atrybut a) {
-	NodeList<Atrybut>* temp = head;
-	NodeList<Atrybut>* t = head->next;
+bool List<Atrybut>::remove(Atrybut a) {
+	ListNode<Atrybut>* temp = head;
+	ListNode<Atrybut>* t = head->next;
 
 	if (head->data.property == a.property) {
 		delete head;
@@ -392,7 +142,7 @@ bool ListSingleLinked<Atrybut>::remove(Atrybut a) {
 
 	while (temp->next != nullptr) {
 		if (temp->next->data.property == a.property) {
-			NodeList<Atrybut>* temp2 = temp->next;
+			ListNode<Atrybut>* temp2 = temp->next;
 
 			temp->next = temp->next->next;
 			delete temp2;
@@ -406,8 +156,8 @@ bool ListSingleLinked<Atrybut>::remove(Atrybut a) {
 
 
 template<>
-bool ListSingleLinked<String>::remove(String a) {
-	NodeList<String>* temp = head;
+bool List<String>::remove(String a) {
+	ListNode<String>* temp = head;
 	if (temp->data == a) {
 		head = head->next;
 		delete temp;
@@ -427,8 +177,8 @@ bool ListSingleLinked<String>::remove(String a) {
 
 
 template<>
-String* ListSingleLinked<String>::findByNazwa(String a) {
-	NodeList<String>* temp = head;
+String* List<String>::findByName(String a) {
+	ListNode<String>* temp = head;
 	while (temp != nullptr) {
 		if (temp->data == a)
 			return &(temp->data);
@@ -441,8 +191,8 @@ String* ListSingleLinked<String>::findByNazwa(String a) {
 class Block {
 
 private:
-	ListSingleLinked<String> selektor;
-	ListSingleLinked<Atrybut> atrybuty;
+	List<String> selectors;
+	List<Atrybut> attributes;
 public:
 	bool used;
 
@@ -452,49 +202,49 @@ public:
 	}
 
 	Block(const Block& other)
-		: selektor(other.selektor), atrybuty(other.atrybuty), used(other.used)
+		: selectors(other.selectors), attributes(other.attributes), used(other.used)
 	{
 	}
 
 	Block& operator=(const Block& b) {
-		selektor = b.selektor;
-		atrybuty = b.atrybuty;
+		selectors = b.selectors;
+		attributes = b.attributes;
 		used = b.used;
 		return *this;
 	}
 
-	void addAtribute(Atrybut a) {
-		Atrybut* k = atrybuty.findByNazwa(a);
+	void addAttribute(Atrybut a) {
+		Atrybut* k = attributes.findByName(a);
 		if (k != nullptr) {
 			k->value = a.value;
 		}
 		else {
-			atrybuty.add(a);
+			attributes.addAtEnd(a);
 		}
 	}
 
-	void addSelektor(String selector) {
-		selektor.add(selector);
+	void addSelector(String selector) {
+		selectors.addAtEnd(selector);
 	}
 
-	size_t getSelectorLen() {
-		return selektor.getLen();
+	size_t getSelectorsNumber() {
+		return selectors.getLength();
 	}
 
-	size_t getAtributesLen() {
-		return atrybuty.getLen();
+	size_t getAtributesNumber() {
+		return attributes.getLength();
 	}
 
 	void print() {
 		std::cout << "Selectors: ";
-		selektor.print();
+		selectors.print();
 		std::cout << "Attributes: ";
-		atrybuty.print();
+		attributes.print();
 	}
 
 	String getSelectorByNumber(int i) {
 
-		String* ptr = selektor.getElementByNumber(i);
+		String* ptr = selectors.getElementByNumber(i-1);
 
 		if (ptr == nullptr) {
 			return "";
@@ -503,7 +253,7 @@ public:
 	}
 
 	String getValueByProperty(Atrybut att) {
-		Atrybut* ptr = atrybuty.findByNazwa(att);
+		Atrybut* ptr = attributes.findByName(att);
 		if (ptr == nullptr) {
 			return "";
 		}
@@ -511,22 +261,22 @@ public:
 	}
 
 	bool containsAttribute(String property) {
-		Atrybut* ptr = atrybuty.findByNazwa(Atrybut(property, ""));
+		Atrybut* ptr = attributes.findByName(Atrybut(property, ""));
 		return ptr == nullptr ? false : true;
 	}
 
 	bool containsSelector(String& selector) {
-		String* ptr = selektor.findByNazwa(selector);
+		String* ptr = selectors.findByName(selector);
 		return ptr == nullptr ? false : true;
 	}
 
 	void deleteAll() {
-		selektor.~ListSingleLinked();
-		atrybuty.~ListSingleLinked();
+		selectors.~List();
+		attributes.~List();
 	}
 
 	bool removeAttribute(String n) {
-		return atrybuty.remove(Atrybut(n, ""));
+		return attributes.remove(Atrybut(n, ""));
 	}
 };
 
@@ -557,21 +307,33 @@ public:
 };
 
 
-class ListDoubleLinked {
+class ListDoublyLinked {
 
 private:
 	BlocksNode* head;
 public:
 
-	ListDoubleLinked()
+	ListDoublyLinked()
 		:head(nullptr)
 	{
 	}
 
-	~ListDoubleLinked() {
+	~ListDoublyLinked() {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
 			delete[] temp->blocks;
+			temp = temp->next;
+		}
+	}
+	
+	void printBlocks() {
+		BlocksNode* temp = head;
+		while (temp != nullptr) {
+			for (int i = 0; i < ROZ; i++) {
+				if (temp->blocks[i].used == true) {
+					temp->blocks[i].print();
+				}
+			}
 			temp = temp->next;
 		}
 	}
@@ -611,13 +373,12 @@ public:
 		return nullptr;
 	}
 
-
 	void addAttributesToAll(Atrybut a) {
 		BlocksNode* temp = head;
 		while (temp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
 				if (temp->blocks[i].used == true) {
-					temp->blocks[i].addAtribute(a);
+					temp->blocks[i].addAttribute(a);
 				}
 			}
 			temp = temp->next;
@@ -630,7 +391,7 @@ public:
 			head = new BlocksNode;
 		}
 
-		//znajdz BlockNode gdzie s¹ wolne miejsca
+		//find node with free space
 		BlocksNode* temp = head;
 		while (temp->size >= ROZ) {
 			if (temp->next == nullptr) {
@@ -648,18 +409,6 @@ public:
 		temp->blocks[temp->size].used = true;
 		temp->size++;
 		temp->usedCount++;
-	}
-
-	void printBlocks() {
-		BlocksNode* temp = head;
-		while (temp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
-				if (temp->blocks[i].used == true) {
-					temp->blocks[i].print();
-				}
-			}
-			temp = temp->next;
-		}
 	}
 
 	size_t numberOfSections() {
@@ -680,7 +429,7 @@ public:
 		if (tmp == nullptr) {
 			return -1;
 		}
-		return tmp->getSelectorLen();
+		return tmp->getSelectorsNumber();
 	};
 
 	// liczba atrybutow w sekcji n				 i,A,?
@@ -689,7 +438,7 @@ public:
 		if (tmp == nullptr) {
 			return 0;
 		}
-		return tmp->getAtributesLen();
+		return tmp->getAtributesNumber();
 	}
 
 	//find j-th selector in i-th section		  i,S,j
@@ -744,7 +493,6 @@ public:
 		return count;
 	}
 
-
 	void deleteEmptyNode(BlocksNode* tmp) {
 		if (tmp != head) {
 			if (tmp->next != nullptr) {
@@ -761,7 +509,6 @@ public:
 			head = newhead;
 		}
 	}
-
 
 	bool deleteBlock(int index) {
 		Block* block = getBlockByNumber(index);
@@ -783,7 +530,6 @@ public:
 		return true;
 	}
 
-
 	bool removeInIthBlockAttribute(int index, String n) {
 		BlocksNode* tmp = getBlocksNodeByBlockNumber(index);
 		Block* block = getBlockByNumber(index);
@@ -796,7 +542,7 @@ public:
 
 		if (x == false) return false;
 
-		if (block->getAtributesLen() == 0) {
+		if (block->getAtributesNumber() == 0) {
 			block->used = false;
 			tmp->usedCount--;
 			block->deleteAll();
@@ -831,77 +577,82 @@ public:
 
 
 int main() {
-	ListDoubleLinked bloki;
+	ListDoublyLinked blocks;
+	Block* block = new Block();
 	bool selectors = true;
 	bool atributes = false;
 	bool commands = false;
+	bool now_prop = true;
 
-	String tmp;
-	Block* block = new Block();
+	String input;
 	String selector = "";
 	String property = "";
 	String value = "";
-	bool now_prop = true;
 
-	while (std::cin >> tmp) {
+	while (std::cin >> input) {
 
-		if (tmp == "") continue;
-		if (tmp == " ") continue;
 
-		if (tmp == "????") {
+		if (input == "????") {
 			selectors = false;
 			atributes = false;
 			commands = true;
+			continue;
+		}
+		else if (input == "****") {
+			commands = false;
+			selectors = true;
+			atributes = false;
+			continue;
 		}
 		int k = 0;
 
 		if (selectors) {
 
 			//dodac spacje przy h4 + h5 
-			if (selector.length() > 0 && tmp != "{") {
+			if (selector.length() > 0 && input != "{") {
 				selector.append(" ");
 			}
 
-			for (; k < tmp.length(); k++) {
-				if (tmp.at(k) == '{') {
+			for (; k < input.length(); k++) {
+				if (input.at(k) == '{') {
 					if (selector.at(selector.length() - 1) == ' ') {
 						selector.pop_back();
 					}
 					if (selector.length() > 0) {
-						block->addSelektor(selector);
+						block->addSelector(selector);
 					}
 					atributes = true;
 					selectors = false;
 					selector = "";
 					break;
 				}
-				if (tmp.at(k) == ',') {
-					block->addSelektor(selector);
+				if (input.at(k) == ',') {
+					block->addSelector(selector);
 					selector = "";
 				}
 				else {
-					char s = tmp.at(k);
+					char s = input.at(k);
 					selector.append(s);
 				}
 			}
 		}
 		if (atributes) {
 
-			if (value.length() > 0 && tmp != "}") {
+			if (value.length() > 0 && input != "}") {
 				value.append(" ");
 			}
 
-			if (tmp == "}") {
+			if (input == "}") {
 				now_prop = true;
 				atributes = false;
 				block->used = true;
 				selectors = true;
 				if (property.length() > 0) {
-					block->addAtribute(Atrybut(property, value));
+					block->addAttribute(Atrybut(property, value));
 
 				}
-				if (block->getAtributesLen() > 0) {
-					bloki.addBlock(*block);
+				if (block->getAtributesNumber() > 0) {
+					blocks.addBlock(*block);
 				}
 				else {
 					delete block;
@@ -911,12 +662,12 @@ int main() {
 				property = "";
 			}
 			else {
-				for (; k < tmp.length(); k++) {
-					if (tmp.at(k) == '{') continue;
-					if (tmp.at(k) == '}') {
+				for (; k < input.length(); k++) {
+					if (input.at(k) == '{') continue;
+					if (input.at(k) == '}') {
 
 						if (property.length() > 0 && value.length() > 0) {
-							block->addAtribute(Atrybut(property, value));
+							block->addAttribute(Atrybut(property, value));
 							property = "";
 							value = "";
 						}
@@ -924,19 +675,18 @@ int main() {
 						selectors = true;
 						atributes = false;
 						block->used = true;
-						bloki.addBlock(*block);
+						blocks.addBlock(*block);
 						block = new Block();
 						break;
 					}
 
-
-					if (tmp.at(k) == ':') {
+					if (input.at(k) == ':') {
 						now_prop = false;
 						continue;
 					}
-					if (tmp.at(k) == ';') {
+					if (input.at(k) == ';') {
 						if (property.length() > 0 && value.length() > 0) {
-							block->addAtribute(Atrybut(property, value));
+							block->addAttribute(Atrybut(property, value));
 						}
 						property = "";
 						value = "";
@@ -944,12 +694,12 @@ int main() {
 						continue;
 					}
 					if (now_prop) {
-						property.append(tmp.at(k));
+						property.append(input.at(k));
 					}
 					else {
-						value.append(tmp.at(k));
+						value.append(input.at(k));
 					}
-					if (tmp.at(k) == ',') {
+					if (input.at(k) == ',') {
 						value.append(" ");
 					}
 
@@ -958,121 +708,116 @@ int main() {
 		}
 		else if (commands) {
 
-			//Do wczytywania jeœli jest spacja w selektorze
-			String x;
-			if (tmp != "****" && tmp != "????" && tmp != "?" && tmp != "." && tmp.countChar(',') < 1) {
+			//if there is space in selector 
+			String tmp;
+			if (input != "?" && input != "." && input.countChar(',') < 1) {
 				while (true) {
-					std::cin >> x;
-					if (x == "") continue;
-					if (x == " ") continue;
-					tmp.append(" ");
-					tmp.append(x.c_str());
-					if (x.at(x.length() - 4) == ',') {
+					std::cin >> tmp;
+					if (tmp == "") continue;
+					if (tmp == " ") continue;
+					input.append(" ");
+					input.append(tmp.c_str());
+					if (tmp.at(tmp.length() - 4) == ',') {
 						break;
 					}
 				}
 			}
 
-			if (tmp == "?") {
-				int number = bloki.numberOfSections();
+			if (input == "?") {
+				int number = blocks.numberOfSections();
 				std::cout << "? == " << number << std::endl;
 			}
-			if (tmp == ".") {
-				bloki.printBlocks();
+			else if (input == ".") {
+				blocks.printBlocks();
 			}
-			else if (tmp == "****") {
-				commands = false;
-				selectors = true;
-				atributes = false;
-			}
-			else if (tmp.contains(",S,?")) {
+			else if (input.contains(",S,?")) {
 				// i, S, ? – wypisz liczbê selektorów dla sekcji nr i(numery zaczynaj¹ siê od 1), jeœli nie ma takiego bloku pomiñ;
-				int n = atoi(tmp.c_str());
+				int n = atoi(input.c_str());
 
 				if (n == 0) {
 					//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
 
-					tmp.cut(tmp.length() - 5);
-					if (tmp != ".ms-Breadcrumb-chevron" && tmp != ".ms-Breadcrumb-itemLink") {
-						int result = bloki.numberOfSelectorOfName(tmp);
-						std::cout << tmp << ",S,? == " << result << std::endl;
+					input.cut(input.length() - 5);
+					if (input != ".ms-Breadcrumb-chevron" && input != ".ms-Breadcrumb-itemLink") {
+						int result = blocks.numberOfSelectorOfName(input);
+						std::cout << input << ",S,? == " << result << std::endl;
 					}
 				}
 				else {
-					int result = bloki.numberOfSelectorsInSection(n);
+					int result = blocks.numberOfSelectorsInSection(n);
 					if (result != -1) {
 						std::cout << n << ",S,? == " << result << std::endl;
 					}
 				}
 			}
-			else if (tmp.contains(",A,?")) {
+			else if (input.contains(",A,?")) {
 				// wypisz liczbê atrybutów dla sekcji nr i, jeœli nie ma takiego bloku lub sekcji pomiñ;
-				int n = atoi(tmp.c_str());
+				int n = atoi(input.c_str());
 
 				if (n == 0) {
 					//n, A, ? – wypisz ³¹czn¹(dla wszystkich bloków) liczbê wyst¹pieñ atrybutu nazwie n. (W ramach
 					//pojedynczego bloku duplikaty powinny zostaæ usuniête na etapie wczytywania).Mo¿liwe jest 0;
-					tmp.cut(tmp.length() - 5);
+					input.cut(input.length() - 5);
 
-					int result = bloki.numberOfAtributes(tmp);
-					std::cout << tmp << ",A,? == " << result << std::endl;
+					int result = blocks.numberOfAtributes(input);
+					std::cout << input << ",A,? == " << result << std::endl;
 				}
 				else {
-					int result = bloki.numberOfAtributesInSection(n);
+					int result = blocks.numberOfAtributesInSection(n);
 					if (result != 0) {
 						std::cout << n << ",A,? == " << result << std::endl;
 					}
 				}
 			}
-			else if (tmp.contains(",S,")) {
+			else if (input.contains(",S,")) {
 				//i,S,j – wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutów zaczynaj¹ siê od 1) jeœli nie
 				// ma sekcji lub selektora pomiñ;
 
-				int i = atoi(tmp.c_str());
-				int j = atoi(tmp.c_str() + tmp.find(",") + 3);
-				String result = bloki.findSelectorInBlock(i, j);
+				int i = atoi(input.c_str());
+				int j = atoi(input.c_str() + input.find(",") + 3);
+				String result = blocks.findSelectorInBlock(i, j);
 
 				if (result.length() > 0) {
 					std::cout << i << ",S," << j << " == " << result << std::endl;
 				}
 			}
-			else if (tmp.contains(",A,")) {
+			else if (input.contains(",A,")) {
 				// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
 
-				int i = atoi(tmp.c_str());
-				String n = tmp.c_str() + tmp.find(",") + 3;
-				String result = bloki.findValueInSectionByPropertyName(i, n);
+				int i = atoi(input.c_str());
+				String n = input.c_str() + input.find(",") + 3;
+				String result = blocks.findValueInSectionByPropertyName(i, n);
 
 				if (result.length() > 0) {
 					std::cout << i << ",A," << n << " == " << result << std::endl;
 				}
 			}
-			else if (tmp.contains(",E,")) {
+			else if (input.contains(",E,")) {
 				//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
 				//bierzemy ostatnie.W przypadku braku pomiñ;
 
-				String n = tmp.c_str() + tmp.find(",") + 3;
-				tmp.cut(tmp.length() - 4 - n.length());
-				String z = tmp;
+				String n = input.c_str() + input.find(",") + 3;
+				input.cut(input.length() - 4 - n.length());
+				String z = input;
 
-				String result = bloki.findAttrForSelector(z, n);
+				String result = blocks.findAttrForSelector(z, n);
 
 				if (result.length() > 0) {
 					std::cout << z << ",E," << n << " == " << result << std::endl;
 				}
 			}
-			else if (tmp.contains(",D,*")) {
-				int i = atoi(tmp.c_str());
+			else if (input.contains(",D,*")) {
+				int i = atoi(input.c_str());
 
-				if (bloki.deleteBlock(i)) {
+				if (blocks.deleteBlock(i)) {
 					std::cout << i << ",D,*" << " == deleted" << std::endl;
 				}
 			}
-			else if (tmp.contains(",D,")) {
-				int i = atoi(tmp.c_str());
-				String n = tmp.c_str() + tmp.find(",") + 3;
+			else if (input.contains(",D,")) {
+				int i = atoi(input.c_str());
+				String n = input.c_str() + input.find(",") + 3;
 
-				if (bloki.removeInIthBlockAttribute(i, n)) {
+				if (blocks.removeInIthBlockAttribute(i, n)) {
 					std::cout << i << ",D," << n << " == deleted" << std::endl;
 
 				}
