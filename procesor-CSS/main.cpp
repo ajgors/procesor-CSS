@@ -566,36 +566,35 @@ public:
 int main() {
 	ListDoublyLinked blocks;
 	Block* block = new Block();
-	bool selectors = true;
-	bool atributes = false;
-	bool commands = false;
-	bool now_prop = true;
+	bool isSelectors = true;
+	bool isAtributes = false;
+	bool isCommands = false;
+	bool isProperty = true;
 
 	String input;
 	String selector = "";
 	String property = "";
 	String value = "";
-
+	String command = "";
+	String before = "";
 	while (std::cin >> input) {
 
-
 		if (input == "????") {
-			selectors = false;
-			atributes = false;
-			commands = true;
+			isSelectors = false;
+			isAtributes = false;
+			isCommands = true;
 			continue;
 		}
 		else if (input == "****") {
-			commands = false;
-			selectors = true;
-			atributes = false;
+			isCommands = false;
+			isSelectors = true;
+			isAtributes = false;
 			continue;
 		}
 		int k = 0;
 
-		if (selectors) {
+		if (isSelectors) {
 
-			//dodac spacje przy h4 + h5 
 			if (selector.length() > 0 && input != "{") {
 				selector.append(" ");
 			}
@@ -608,8 +607,8 @@ int main() {
 					if (selector.length() > 0) {
 						block->addSelector(selector);
 					}
-					atributes = true;
-					selectors = false;
+					isAtributes = true;
+					isSelectors = false;
 					selector = "";
 					break;
 				}
@@ -623,93 +622,51 @@ int main() {
 				}
 			}
 		}
-		if (atributes) {
+		if (isAtributes) {
 
 			if (value.length() > 0 && input != "}") {
 				value.append(" ");
 			}
+			for (; k < input.length(); k++) {
+				if (input[k] == '{') continue;
+				if (input[k] == '}') {
 
-			if (input == "}") {
-				now_prop = true;
-				atributes = false;
-				block->used = true;
-				selectors = true;
-				if (property.length() > 0) {
-					block->addAttribute(Attribute(property, value));
-
-				}
-				if (block->getAtributesNumber() > 0) {
-					blocks.addBlock(*block);
-				}
-				else {
-					delete block;
-				}
-				block = new Block();
-				value = "";
-				property = "";
-			}
-			else {
-				for (; k < input.length(); k++) {
-					if (input[k] == '{') continue;
-					if (input[k] == '}') {
-
-						if (property.length() > 0 && value.length() > 0) {
-							block->addAttribute(Attribute(property, value));
-							property = "";
-							value = "";
-						}
-						now_prop = true;
-						selectors = true;
-						atributes = false;
-						block->used = true;
-						blocks.addBlock(*block);
-						block = new Block();
-						break;
-					}
-
-					if (input[k] == ':') {
-						now_prop = false;
-						continue;
-					}
-					if (input[k] == ';') {
-						if (property.length() > 0 && value.length() > 0) {
-							block->addAttribute(Attribute(property, value));
-						}
+					if (property.length() > 0 && value.length() > 0) {
+						block->addAttribute(Attribute(property, value));
 						property = "";
 						value = "";
-						now_prop = true;
-						continue;
 					}
-					if (now_prop) {
-						property.append(input[k]);
-					}
-					else {
-						value.append(input[k]);
-					}
-					if (input[k] == ',') {
-						value.append(" ");
-					}
+					isProperty = true;
+					isSelectors = true;
+					isAtributes = false;
+					blocks.addBlock(*block);
+					block = new Block();
+					break;
+				}
 
+				if (input[k] == ':') {
+					isProperty = false;
+					continue;
+				}
+				if (input[k] == ';') {
+					if (property.length() > 0 && value.length() > 0) {
+						block->addAttribute(Attribute(property, value));
+					}
+					property = "";
+					value = "";
+					isProperty = true;
+					continue;
+				}
+				if (isProperty) {
+					property.append(input[k]);
+				}
+				else {
+					value.append(input[k]);
 				}
 			}
 		}
-		else if (commands) {
-
-			//if there is space in selector 
-			String tmp;
-			if (input != "?" && input != "." && input.countChar(',') < 1) {
-				while (true) {
-					std::cin >> tmp;
-					if (tmp == "") continue;
-					if (tmp == " ") continue;
-					input.append(" ");
-					input.append(tmp.c_str());
-					if (tmp[tmp.length() - 4] == ',') {
-						break;
-					}
-				}
-			}
-
+		else if (isCommands) {
+			
 			if (input == "?") {
 				int number = blocks.numberOfSections();
 				std::cout << "? == " << number << std::endl;
@@ -717,100 +674,114 @@ int main() {
 			else if (input == ".") {
 				blocks.printBlocks();
 			}
-			else if (input.contains(",S,?")) {
-				// i, S, ? – wypisz liczbê selektorów dla sekcji nr i(numery zaczynaj¹ siê od 1), jeœli nie ma takiego bloku pomiñ;
-				int n = atoi(input.c_str());
+			else {
+				
+				for (; k < input.length(); k++) {
+					command.append(input[k]);
+				}
+				if (command.countChar(',') == 0) {
+					command.append(" ");
+				}
 
-				if (n == 0) {
-					//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
+				if (command.countChar(',') == 2) {
+					if (command.contains(",S,?")) {
+						// i, S, ? – wypisz liczbê selektorów dla sekcji nr i(numery zaczynaj¹ siê od 1), jeœli nie ma takiego bloku pomiñ;
+						int n = atoi(command.c_str());
 
-					input.cut(input.length() - 5);
-					if (input != ".ms-Breadcrumb-chevron" && input != ".ms-Breadcrumb-itemLink") {
-						int result = blocks.numberOfSelectorOfName(input);
-						std::cout << input << ",S,? == " << result << std::endl;
+						if (n == 0) {
+							//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
+
+							command.cut(command.length() - 5);
+							int result = blocks.numberOfSelectorOfName(command);
+							std::cout << command << ",S,? == " << result << std::endl;
+						}
+						else {
+							int result = blocks.numberOfSelectorsInSection(n);
+							if (result != -1) {
+								std::cout << n << ",S,? == " << result << std::endl;
+							}
+						}
 					}
-				}
-				else {
-					int result = blocks.numberOfSelectorsInSection(n);
-					if (result != -1) {
-						std::cout << n << ",S,? == " << result << std::endl;
+					else if (command.contains(",A,?")) {
+						// wypisz liczbê atrybutów dla sekcji nr i, jeœli nie ma takiego bloku lub sekcji pomiñ;
+						int n = atoi(command.c_str());
+
+						if (n == 0) {
+							//n, A, ? – wypisz ³¹czn¹(dla wszystkich bloków) liczbê wyst¹pieñ atrybutu nazwie n. (W ramach
+							//pojedynczego bloku duplikaty powinny zostaæ usuniête na etapie wczytywania).Mo¿liwe jest 0;
+							command.cut(command.length() - 5);
+
+							int result = blocks.numberOfAttributesOfName(command);
+							std::cout << command << ",A,? == " << result << std::endl;
+						}
+						else {
+							int result = blocks.numberOfAtributesInSection(n);
+							if (result != 0) {
+								std::cout << n << ",A,? == " << result << std::endl;
+							}
+						}
 					}
-				}
-			}
-			else if (input.contains(",A,?")) {
-				// wypisz liczbê atrybutów dla sekcji nr i, jeœli nie ma takiego bloku lub sekcji pomiñ;
-				int n = atoi(input.c_str());
+					else if (command.contains(",S,")) {
+						//i,S,j – wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutów zaczynaj¹ siê od 1) jeœli nie
+						// ma sekcji lub selektora pomiñ;
 
-				if (n == 0) {
-					//n, A, ? – wypisz ³¹czn¹(dla wszystkich bloków) liczbê wyst¹pieñ atrybutu nazwie n. (W ramach
-					//pojedynczego bloku duplikaty powinny zostaæ usuniête na etapie wczytywania).Mo¿liwe jest 0;
-					input.cut(input.length() - 5);
+						int i = atoi(command.c_str());
+						int j = atoi(command.c_str() + command.find(",") + 3);
+						String result = blocks.findSelectorInBlock(i, j);
 
-					int result = blocks.numberOfAttributesOfName(input);
-					std::cout << input << ",A,? == " << result << std::endl;
-				}
-				else {
-					int result = blocks.numberOfAtributesInSection(n);
-					if (result != 0) {
-						std::cout << n << ",A,? == " << result << std::endl;
+						if (result.length() > 0) {
+							std::cout << i << ",S," << j << " == " << result << std::endl;
+						}
 					}
+					else if (command.contains(",A,")) {
+						// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
+
+						int i = atoi(command.c_str());
+						String n = command.c_str() + command.find(",") + 3;
+						String result = blocks.findValueInSectionByPropertyName(i, n);
+
+						if (result.length() > 0) {
+							std::cout << i << ",A," << n << " == " << result << std::endl;
+						}
+					}
+					else if (command.contains(",E,")) {
+						//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
+						//bierzemy ostatnie.W przypadku braku pomiñ;
+
+						String n = command.c_str() + command.find(",") + 3;
+						command.cut(command.length() - 4 - n.length());
+						String z = command;
+
+						String result = blocks.findAttrForSelector(z, n);
+
+						if (result.length() > 0) {
+							std::cout << z << ",E," << n << " == " << result << std::endl;
+						}
+					}
+					else if (command.contains(",D,*")) {
+						int i = atoi(command.c_str());
+
+						if (blocks.deleteBlock(i)) {
+							std::cout << i << ",D,*" << " == deleted" << std::endl;
+						}
+					}
+					else if (command.contains(",D,")) {
+						int i = atoi(command.c_str());
+						String n = command.c_str() + command.find(",") + 3;
+
+						if (blocks.removeInIthBlockAttribute(i, n)) {
+							std::cout << i << ",D," << n << " == deleted" << std::endl;
+
+						}
+					}
+					command = "";
 				}
-			}
-			else if (input.contains(",S,")) {
-				//i,S,j – wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutów zaczynaj¹ siê od 1) jeœli nie
-				// ma sekcji lub selektora pomiñ;
-
-				int i = atoi(input.c_str());
-				int j = atoi(input.c_str() + input.find(",") + 3);
-				String result = blocks.findSelectorInBlock(i, j);
-
-				if (result.length() > 0) {
-					std::cout << i << ",S," << j << " == " << result << std::endl;
-				}
-			}
-			else if (input.contains(",A,")) {
-				// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
-
-				int i = atoi(input.c_str());
-				String n = input.c_str() + input.find(",") + 3;
-				String result = blocks.findValueInSectionByPropertyName(i, n);
-
-				if (result.length() > 0) {
-					std::cout << i << ",A," << n << " == " << result << std::endl;
-				}
-			}
-			else if (input.contains(",E,")) {
-				//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
-				//bierzemy ostatnie.W przypadku braku pomiñ;
-
-				String n = input.c_str() + input.find(",") + 3;
-				input.cut(input.length() - 4 - n.length());
-				String z = input;
-
-				String result = blocks.findAttrForSelector(z, n);
-
-				if (result.length() > 0) {
-					std::cout << z << ",E," << n << " == " << result << std::endl;
-				}
-			}
-			else if (input.contains(",D,*")) {
-				int i = atoi(input.c_str());
-
-				if (blocks.deleteBlock(i)) {
-					std::cout << i << ",D,*" << " == deleted" << std::endl;
-				}
-			}
-			else if (input.contains(",D,")) {
-				int i = atoi(input.c_str());
-				String n = input.c_str() + input.find(",") + 3;
-
-				if (blocks.removeInIthBlockAttribute(i, n)) {
-					std::cout << i << ",D," << n << " == deleted" << std::endl;
-
+				else if(command.countChar(',') > 2) { //b³¹d na stosie 
+					command = "";
 				}
 			}
 		}
-	}
 
+	}
 	return 0;
 }

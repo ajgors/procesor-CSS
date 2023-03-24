@@ -210,7 +210,7 @@ public:
 	void clear() {
 		delete[] m_string;
 		m_string = new char[1];
-		m_length = 1;
+		m_length = 0;
 	}
 
 	int countChar(char c) {
