@@ -7,6 +7,25 @@ private:
 	size_t m_length;
 	char* m_string;
 	size_t m_capacity;
+
+	void resize() {
+
+		if (m_length >= m_capacity) {
+			m_capacity = 2 * m_length;
+			char* new_string = new char[m_capacity]();
+			memcpy(new_string, m_string, m_capacity);
+			delete[] m_string;
+			m_string = new_string;
+		}
+		else if (m_length < m_capacity / 2 && m_length > 1) {
+			m_capacity /= 2;
+			char* new_string = new char[m_capacity]();
+			memcpy(new_string, m_string, m_capacity);
+			delete[] m_string;
+			m_string = new_string;
+		}
+	}
+
 public:
 
 	String()
@@ -76,24 +95,6 @@ public:
 		return strcmp(m_string, other) != 0;
 	}
 
-	void resize() {
-
-		if (m_length >= m_capacity) {
-			m_capacity = 2 * m_length;
-			char* new_string = new char[m_capacity]();
-			memcpy(new_string, m_string, m_capacity);
-			delete[] m_string;
-			m_string = new_string;
-		}
-		else if (m_length < m_capacity / 2 && m_length > 1) {
-			m_capacity /= 2;
-			char* new_string = new char[m_capacity]();
-			memcpy(new_string, m_string, m_capacity);
-			delete[] m_string;
-			m_string = new_string;
-		}
-	}
-
 	void pop_back() {
 		if (m_length > 0) {
 			m_string[m_length] = '\0';
@@ -135,7 +136,6 @@ public:
 		return m_length;
 	}
 
-	//returns index of searched string start point if not found returns -1
 	int find(const char* str) {
 		size_t length = strlen(str);
 
@@ -170,30 +170,21 @@ public:
 	}
 
 	//from index to end
-	void slice(size_t index) {
-		size_t new_length = m_length - index;
-		char* new_string = new char[new_length + 1]();
-
-		strncat_s(new_string, new_length + 1, m_string + index, new_length);
-		delete[] m_string;
-		m_string = new_string;
-		m_length = new_length;
+	String slice(size_t index) {
+		return substr(index, m_length);
 	}
 
 	//from 0 to index
-	void cut(size_t index) {
-		m_length = index + 2;
-		resize();
-		m_string[m_length -1 ] = '\0';
+	String cut(size_t index) {
+		return substr(0, index);
 	}
 
 	String substr(int start, int end) {
-		String new_string;
-
-		for (int i = start; i < end; i++) {
-			new_string.append(m_string[i]);
-		}
-		return new_string;
+		size_t size = end - start;
+		char *new_string = new char[size + 1]();
+		strncpy(new_string, m_string + start, size);
+		new_string[size] = '\0';
+		return String(new_string);
 	}
 
 	char at(size_t index) {
@@ -233,19 +224,16 @@ public:
 };
 
 
-std::ostream& operator<<(std::ostream& os, const String& string)
-{
+std::ostream& operator<<(std::ostream& os, const String& string){
 	os << string.m_string;
 	return os;
 }
 
 
-std::istream& operator>>(std::istream& in, String& out)
-{
-	char* buffer = new char[100];
-	memset(buffer, 0, 100);
-	in >> buffer;
-	out = buffer;
-	delete[] buffer;
+std::istream& operator>>(std::istream& in, String& out){
+	char* buffor = new char[100]();
+	in >> buffor;
+	out = buffor;
+	delete[] buffor;
 	return in;
 }

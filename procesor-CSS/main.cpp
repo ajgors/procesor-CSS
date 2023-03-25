@@ -20,7 +20,7 @@ struct Attribute {
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const Attribute& att) {
-		os << att.property << ": " << att.value;
+		os << att.property << ":" << att.value;
 		return os;
 	}
 };
@@ -380,7 +380,6 @@ public:
 			head = new BlocksNode;
 		}
 
-		//find node with free space
 		BlocksNode* temp = head;
 		while (temp->size >= ROZ) {
 			if (temp->next == nullptr) {
@@ -412,7 +411,6 @@ public:
 		return result;
 	}
 
-	//liczba selektorow w sekcji n				 i,S,?
 	int numberOfSelectorsInSection(int n) {
 		Block* tmp = getBlockByNumber(n);
 		if (tmp == nullptr) {
@@ -421,7 +419,6 @@ public:
 		return tmp->getSelectorsNumber();
 	};
 
-	// liczba atrybutow w sekcji n				 i,A,?
 	int numberOfAtributesInSection(int n) {
 		Block* tmp = getBlockByNumber(n);
 		if (tmp == nullptr) {
@@ -430,7 +427,6 @@ public:
 		return tmp->getAtributesNumber();
 	}
 
-	//find j-th selector in i-th section		  i,S,j
 	String findSelectorInBlock(int index, int j) {
 
 		Block* tmp = getBlockByNumber(index);
@@ -440,7 +436,6 @@ public:
 		return tmp->getSelectorByNumber(j);
 	};
 
-	// dla itej sekcji value of property			i,A,n
 	String findValueInSectionByPropertyName(int index, String& property) {
 		Block* tmp = getBlockByNumber(index);
 		if (tmp == nullptr) {
@@ -449,7 +444,6 @@ public:
 		return tmp->getValueByProperty(Attribute(property, ""));
 	}
 
-	//lizcba wyst�pien atrybutu w szystkich sekcjach	 n,A,?
 	int numberOfAttributesOfName(String& property) {
 		BlocksNode* tmp = head;
 		int count = 0;
@@ -510,7 +504,6 @@ public:
 		blocksNode->usedCount--;
 		block->deleteAll();
 
-		//usuwanie wezla jesli jest pusty
 		if (blocksNode->usedCount == 0) {
 			DeleteNode(blocksNode);
 		}
@@ -526,9 +519,7 @@ public:
 			return false;
 		}
 
-		bool r = block->removeAttribute(n);
-
-		if (r == false) return false;
+		if (!block->removeAttribute(n)) return false;
 
 		if (block->getAtributesNumber() == 0) {
 			block->used = false;
@@ -536,7 +527,6 @@ public:
 			block->deleteAll();
 		}
 
-		//usuwanie wezla jesli jest pusty
 		if (blocksNode->usedCount == 0) {
 			DeleteNode(blocksNode);
 		}
@@ -571,13 +561,12 @@ int main() {
 	bool isAtributes = false;
 	bool isCommands = false;
 	bool isProperty = true;
-
+	
 	String input;
 	String selector = "";
 	String property = "";
 	String value = "";
 	String command = "";
-	String before = "";
 	while (std::cin >> input) {
 
 		if (input == "????") {
@@ -686,13 +675,10 @@ int main() {
 
 				if (command.countChar(',') == 2) {
 					if (command.contains(",S,?")) {
-						// i, S, ? � wypisz liczb� selektor�w dla sekcji nr i(numery zaczynaj� si� od 1), je�li nie ma takiego bloku pomi�;
 						int n = atoi(command.c_str());
 
 						if (n == 0) {
-							//z,S,? � wypisz ��czn� (dla wszystkich blok�w) liczb� wyst�pie� selektora z. Mo�liwe jest 0;
-
-							command.cut(command.length() - 5);
+							command = command.cut(command.length() - 4);
 							int result = blocks.numberOfSelectorOfName(command);
 							std::cout << command << ",S,? == " << result << std::endl;
 						}
@@ -704,13 +690,10 @@ int main() {
 						}
 					}
 					else if (command.contains(",A,?")) {
-						// wypisz liczb� atrybut�w dla sekcji nr i, je�li nie ma takiego bloku lub sekcji pomi�;
 						int n = atoi(command.c_str());
 
 						if (n == 0) {
-							//n, A, ? � wypisz ��czn�(dla wszystkich blok�w) liczb� wyst�pie� atrybutu nazwie n. (W ramach
-							//pojedynczego bloku duplikaty powinny zosta� usuni�te na etapie wczytywania).Mo�liwe jest 0;
-							command.cut(command.length() - 5);
+							command = command.cut(command.length() - 4);
 
 							int result = blocks.numberOfAttributesOfName(command);
 							std::cout << command << ",A,? == " << result << std::endl;
@@ -723,8 +706,6 @@ int main() {
 						}
 					}
 					else if (command.contains(",S,")) {
-						//i,S,j � wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybut�w zaczynaj� si� od 1) je�li nie
-						// ma sekcji lub selektora pomi�;
 
 						int i = atoi(command.c_str());
 						int j = atoi(command.c_str() + command.find(",") + 3);
@@ -735,7 +716,6 @@ int main() {
 						}
 					}
 					else if (command.contains(",A,")) {
-						// i, A, n � wypisz dla i - tej sekcji warto�� atrybutu o nazwie n, je�li nie ma takiego pomi�;
 
 						int i = atoi(command.c_str());
 						String n = command.c_str() + command.find(",") + 3;
@@ -746,11 +726,9 @@ int main() {
 						}
 					}
 					else if (command.contains(",E,")) {
-						//z, E, n � wypisz warto�� atrybutu o nazwie n dla selektora z, w przypadku wielu wyst�pie� selektora z
-						//bierzemy ostatnie.W przypadku braku pomi�;
 
 						String n = command.c_str() + command.find(",") + 3;
-						command.cut(command.length() - 4 - n.length());
+						command = command.cut(command.length() - 3 - n.length());
 						String z = command;
 
 						String result = blocks.findAttrForSelector(z, n);
@@ -772,12 +750,11 @@ int main() {
 
 						if (blocks.removeInIthBlockAttribute(i, n)) {
 							std::cout << i << ",D," << n << " == deleted" << std::endl;
-
 						}
 					}
 					command = "";
 				}
-				else if (command.countChar(',') > 2) { //b��d na stosie 
+				else if (command.countChar(',') > 2) {
 					command = "";
 				}
 			}
