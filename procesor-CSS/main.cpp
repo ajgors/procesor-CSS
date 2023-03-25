@@ -1,3 +1,4 @@
+ï»¿#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 #include "stringImp.h"
 #include "string.h"
@@ -448,7 +449,7 @@ public:
 		return tmp->getValueByProperty(Attribute(property, ""));
 	}
 
-	//lizcba wyst¹pien atrybutu w szystkich sekcjach	 n,A,?
+	//lizcba wystï¿½pien atrybutu w szystkich sekcjach	 n,A,?
 	int numberOfAttributesOfName(String& property) {
 		BlocksNode* tmp = head;
 		int count = 0;
@@ -666,7 +667,7 @@ int main() {
 			}
 		}
 		else if (isCommands) {
-			
+
 			if (input == "?") {
 				int number = blocks.numberOfSections();
 				std::cout << "? == " << number << std::endl;
@@ -675,7 +676,7 @@ int main() {
 				blocks.printBlocks();
 			}
 			else {
-				
+
 				for (; k < input.length(); k++) {
 					command.append(input[k]);
 				}
@@ -685,11 +686,11 @@ int main() {
 
 				if (command.countChar(',') == 2) {
 					if (command.contains(",S,?")) {
-						// i, S, ? – wypisz liczbê selektorów dla sekcji nr i(numery zaczynaj¹ siê od 1), jeœli nie ma takiego bloku pomiñ;
+						// i, S, ? ï¿½ wypisz liczbï¿½ selektorï¿½w dla sekcji nr i(numery zaczynajï¿½ siï¿½ od 1), jeï¿½li nie ma takiego bloku pomiï¿½;
 						int n = atoi(command.c_str());
 
 						if (n == 0) {
-							//z,S,? – wypisz ³¹czn¹ (dla wszystkich bloków) liczbê wyst¹pieñ selektora z. Mo¿liwe jest 0;
+							//z,S,? ï¿½ wypisz ï¿½ï¿½cznï¿½ (dla wszystkich blokï¿½w) liczbï¿½ wystï¿½pieï¿½ selektora z. Moï¿½liwe jest 0;
 
 							command.cut(command.length() - 5);
 							int result = blocks.numberOfSelectorOfName(command);
@@ -703,12 +704,12 @@ int main() {
 						}
 					}
 					else if (command.contains(",A,?")) {
-						// wypisz liczbê atrybutów dla sekcji nr i, jeœli nie ma takiego bloku lub sekcji pomiñ;
+						// wypisz liczbï¿½ atrybutï¿½w dla sekcji nr i, jeï¿½li nie ma takiego bloku lub sekcji pomiï¿½;
 						int n = atoi(command.c_str());
 
 						if (n == 0) {
-							//n, A, ? – wypisz ³¹czn¹(dla wszystkich bloków) liczbê wyst¹pieñ atrybutu nazwie n. (W ramach
-							//pojedynczego bloku duplikaty powinny zostaæ usuniête na etapie wczytywania).Mo¿liwe jest 0;
+							//n, A, ? ï¿½ wypisz ï¿½ï¿½cznï¿½(dla wszystkich blokï¿½w) liczbï¿½ wystï¿½pieï¿½ atrybutu nazwie n. (W ramach
+							//pojedynczego bloku duplikaty powinny zostaï¿½ usuniï¿½te na etapie wczytywania).Moï¿½liwe jest 0;
 							command.cut(command.length() - 5);
 
 							int result = blocks.numberOfAttributesOfName(command);
@@ -722,8 +723,8 @@ int main() {
 						}
 					}
 					else if (command.contains(",S,")) {
-						//i,S,j – wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutów zaczynaj¹ siê od 1) jeœli nie
-						// ma sekcji lub selektora pomiñ;
+						//i,S,j ï¿½ wypisz j-ty selector dla i-tego bloku (numery sekcji oraz atrybutï¿½w zaczynajï¿½ siï¿½ od 1) jeï¿½li nie
+						// ma sekcji lub selektora pomiï¿½;
 
 						int i = atoi(command.c_str());
 						int j = atoi(command.c_str() + command.find(",") + 3);
@@ -734,7 +735,7 @@ int main() {
 						}
 					}
 					else if (command.contains(",A,")) {
-						// i, A, n – wypisz dla i - tej sekcji wartoœæ atrybutu o nazwie n, jeœli nie ma takiego pomiñ;
+						// i, A, n ï¿½ wypisz dla i - tej sekcji wartoï¿½ï¿½ atrybutu o nazwie n, jeï¿½li nie ma takiego pomiï¿½;
 
 						int i = atoi(command.c_str());
 						String n = command.c_str() + command.find(",") + 3;
@@ -745,8 +746,8 @@ int main() {
 						}
 					}
 					else if (command.contains(",E,")) {
-						//z, E, n – wypisz wartoœæ atrybutu o nazwie n dla selektora z, w przypadku wielu wyst¹pieñ selektora z
-						//bierzemy ostatnie.W przypadku braku pomiñ;
+						//z, E, n ï¿½ wypisz wartoï¿½ï¿½ atrybutu o nazwie n dla selektora z, w przypadku wielu wystï¿½pieï¿½ selektora z
+						//bierzemy ostatnie.W przypadku braku pomiï¿½;
 
 						String n = command.c_str() + command.find(",") + 3;
 						command.cut(command.length() - 4 - n.length());
@@ -776,7 +777,7 @@ int main() {
 					}
 					command = "";
 				}
-				else if(command.countChar(',') > 2) { //b³¹d na stosie 
+				else if (command.countChar(',') > 2) { //bï¿½ï¿½d na stosie 
 					command = "";
 				}
 			}

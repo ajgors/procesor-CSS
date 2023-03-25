@@ -1,3 +1,4 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <iostream>
 
 class String {
@@ -5,10 +6,11 @@ class String {
 private:
 	size_t m_length;
 	char* m_string;
+	size_t m_capacity;
 public:
 
 	String()
-		:m_length(0), m_string(nullptr)
+		:m_length(0), m_string(new char[1]()), m_capacity(1)
 	{
 	}
 
@@ -17,40 +19,49 @@ public:
 	}
 
 	String(const char* string)
-		:m_length(strlen(string))
+		:m_length(strlen(string)), m_capacity(strlen(string) + 1)
 	{
-		m_string = new char[m_length + 1];
+		m_string = new char[m_capacity]();
 		memcpy(m_string, string, m_length + 1);
 	}
 
 	String(const String& other) {
 		m_length = other.m_length;
-		m_string = new char[other.m_length + 1];
+		m_capacity = other.m_capacity;
+		m_string = new char[m_capacity];
 
-		if (m_length > 0) {
-			memcpy(m_string, other.m_string, m_length + 1);
-		}
+		memcpy(m_string, other.m_string, m_capacity);
 	}
 
 	String& operator=(const String& string) {
 
 		if (this != &string) {
 			m_length = string.m_length;
+			m_capacity = string.m_capacity;
 			delete[] m_string;
-			m_string = new char[m_length + 1];
-			strcpy_s(m_string, m_length + 1, string.m_string);
+			m_string = new char[m_capacity]();
+			strcpy(m_string, string.m_string);
 		}
 		return *this;
 	}
 
 	String& operator=(const char* string) {
 
-		m_length = strlen(string);
-		delete[] m_string;
-		m_string = new char[m_length + 1];
-		strcpy_s(m_string, m_length + 1, string);
+		if (string != nullptr) {
+			m_length = strlen(string);
+			m_capacity = m_length +1;
+			delete[] m_string;
+			m_string = new char[m_capacity]();
+			if (m_length > 0) {
+				strcpy(m_string, string);
+			}
 
+		}
+		else {
+			clear();
+		}
 		return *this;
+
 	}
 
 	bool operator==(String& other) {
@@ -65,14 +76,30 @@ public:
 		return strcmp(m_string, other) != 0;
 	}
 
-	void pop_back() {
-		if (m_length > 0) {
-			m_length--;
-			char* new_string = new char[m_length + 1];
-			memcpy(new_string, m_string, m_length);
-			new_string[m_length] = '\0';
+	void resize() {
+
+		if (m_length >= m_capacity) {
+			m_capacity = 2 * m_length;
+			char* new_string = new char[m_capacity]();
+			memcpy(new_string, m_string, m_capacity);
 			delete[] m_string;
 			m_string = new_string;
+		}
+		else if (m_length < m_capacity / 2 && m_length > 1) {
+			m_capacity /= 2;
+			char* new_string = new char[m_capacity]();
+			memcpy(new_string, m_string, m_capacity);
+			delete[] m_string;
+			m_string = new_string;
+		}
+	}
+
+	void pop_back() {
+		if (m_length > 0) {
+			m_string[m_length] = '\0';
+			m_length--;
+			
+			resize();
 		}
 	}
 
@@ -85,40 +112,18 @@ public:
 	}
 
 	String append(char to_append) {
-
-		size_t new_length = m_length + 1;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		if (m_length > 0) {
-			strcat_s(new_string, new_length + 1, m_string);
-		}
-		strncat_s(new_string, new_length + 1, &to_append, 1);
-
-		delete[] m_string;
-		m_string = new_string;
-		m_length = new_length;
+		m_length += 1;
+		resize();
+		strncat(m_string, &to_append, 1);
 		return *this;
 	}
 
 	String& append(const char* to_append) {
 
 		size_t length = strlen(to_append);
-		size_t new_length = m_length + length;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		if (m_length > 0) {
-			strcat_s(new_string, new_length + 1, m_string);
-		}
-		strcat_s(new_string, new_length + 1, to_append);
-
-		delete[] m_string;
-		m_string = new_string;
-		m_length = new_length;
-
+		m_length += length;
+		resize();
+		strcat(m_string, to_append);
 		return *this;
 	}
 
@@ -167,9 +172,7 @@ public:
 	//from index to end
 	void slice(size_t index) {
 		size_t new_length = m_length - index;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
+		char* new_string = new char[new_length + 1]();
 
 		strncat_s(new_string, new_length + 1, m_string + index, new_length);
 		delete[] m_string;
@@ -179,15 +182,9 @@ public:
 
 	//from 0 to index
 	void cut(size_t index) {
-		size_t new_length = index + 1;
-
-		char* new_string = new char[new_length + 1];
-		std::memset(new_string, 0, new_length + 1);
-
-		strncat_s(new_string, new_length + 1, m_string, new_length);
-		delete[] m_string;
-		m_string = new_string;
-		m_length = new_length;
+		m_length = index + 2;
+		resize();
+		m_string[m_length -1 ] = '\0';
 	}
 
 	String substr(int start, int end) {
@@ -209,7 +206,8 @@ public:
 
 	void clear() {
 		delete[] m_string;
-		m_string = new char[1];
+		m_string = new char[1]();
+		m_capacity = 1;
 		m_length = 0;
 	}
 
@@ -223,6 +221,15 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const String& string);
 	friend std::istream& operator>>(std::istream& is, String& out);
+
+	void trim() {
+		int start = 0;
+		int end = m_length - 1;
+
+		while (m_string[start] == ' ') start++;
+		while (m_string[end] == ' ') end--;
+		*this = substr(start, end + 1);
+	}
 };
 
 
