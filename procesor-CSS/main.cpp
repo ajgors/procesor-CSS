@@ -1,7 +1,6 @@
-﻿#define _CRT_SECURE_NO_WARNINGS
-#include <iostream>
-#include "stringImp.h"
+﻿#include <iostream>
 #include "string.h"
+#include "StringImpl.h"
 #define ROZ 8
 
 
