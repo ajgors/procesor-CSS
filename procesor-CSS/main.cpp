@@ -560,7 +560,6 @@ int main() {
 	bool isAtributes = false;
 	bool isCommands = false;
 	bool isProperty = true;
-	
 	String input;
 	String selector = "";
 	String property = "";
@@ -628,7 +627,13 @@ int main() {
 					isProperty = true;
 					isSelectors = true;
 					isAtributes = false;
-					blocks.addBlock(*block);
+					if (block->getAtributesNumber() > 0) {
+						blocks.addBlock(*block);
+					}
+					else {
+						delete block;
+					}
+					
 					block = new Block();
 					break;
 				}

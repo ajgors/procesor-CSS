@@ -87,8 +87,8 @@ bool String::operator!=(const char* other) {
 
 void String::pop_back() {
 	if (m_length > 0) {
-		m_string[m_length] = '\0';
 		m_length--;
+		m_string[m_length] = '\0';
 
 		resize();
 	}
