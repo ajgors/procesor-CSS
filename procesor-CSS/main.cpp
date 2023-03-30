@@ -88,7 +88,7 @@ public:
 		std::cout << std::endl;
 	}
 
-	int getSize() {
+	size_t getSize() {
 		return m_size;
 	}
 
@@ -96,9 +96,9 @@ public:
 
 	bool remove(T a);
 
-	T* getElementByNumber(int number) {
+	T* getElementByNumber(size_t number) {
 		ListNode<T>* temp = m_head;
-		int i = 0;
+		size_t i = 0;
 		while (temp != nullptr) {
 			if (i == number) {
 				return &temp->data;
@@ -213,7 +213,7 @@ public:
 		m_attributes.print();
 	}
 
-	String getSelectorByNumber(int i) {
+	String getSelectorByNumber(size_t i) {
 
 		String* ptr = m_selectors.getElementByNumber(i - 1);
 
@@ -300,7 +300,7 @@ public:
 	void printBlocks() {
 		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
+			for (size_t i = 0; i < ROZ; i++) {
 				if (temp->blocks[i].m_used == true) {
 					temp->blocks[i].print();
 				}
@@ -309,7 +309,7 @@ public:
 		}
 	}
 
-	BlocksNode* getBlocksNodeByBlockNumber(int n) {
+	BlocksNode* getBlocksNodeByBlockNumber(size_t n) {
 		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			if (n > temp->usedCount) {
@@ -323,14 +323,14 @@ public:
 		return nullptr;
 	}
 
-	Block* getBlockByNumber(int n) {
+	Block* getBlockByNumber(size_t n) {
 		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			if (n > temp->usedCount) {
 				n -= temp->usedCount;
 			}
 			else {
-				for (int i = 0, c = 0; i < ROZ; i++) {
+				for (size_t i = 0, c = 0; i < ROZ; i++) {
 					if (temp->blocks[i].m_used == true) {
 						c++;
 					}
@@ -369,7 +369,7 @@ public:
 		return m_size;
 	}
 
-	int numberOfSelectorsInSection(int n) {
+	size_t numberOfSelectorsInSection(size_t n) {
 		Block* tmp = getBlockByNumber(n);
 		if (tmp == nullptr) {
 			return -1;
@@ -377,7 +377,7 @@ public:
 		return tmp->getSelectorsNumber();
 	};
 
-	int numberOfAtributesInSection(int n) {
+	size_t numberOfAtributesInSection(size_t n) {
 		Block* tmp = getBlockByNumber(n);
 		if (tmp == nullptr) {
 			return 0;
@@ -385,7 +385,7 @@ public:
 		return tmp->getAtributesNumber();
 	}
 
-	String findSelectorInBlock(int index, int j) {
+	String findSelectorInBlock(size_t index, size_t j) {
 
 		Block* tmp = getBlockByNumber(index);
 		if (tmp == nullptr) {
@@ -394,7 +394,7 @@ public:
 		return tmp->getSelectorByNumber(j);
 	};
 
-	String findValueInSectionByPropertyName(int index, String& property) {
+	String findValueInSectionByPropertyName(size_t index, String& property) {
 		Block* tmp = getBlockByNumber(index);
 		if (tmp == nullptr) {
 			return "";
@@ -402,11 +402,11 @@ public:
 		return tmp->getValueByProperty(Attribute(property, ""));
 	}
 
-	int numberOfAttributesOfName(String& property) {
+	size_t numberOfAttributesOfName(String& property) {
 		BlocksNode* tmp = m_head;
-		int count = 0;
+		size_t count = 0;
 		while (tmp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
+			for (size_t i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].m_used == true) {
 					if (tmp->blocks[i].containsAttribute(property)) {
 						count++;
@@ -418,11 +418,11 @@ public:
 		return count;
 	};
 
-	int numberOfSelectorOfName(String& selector) {
+	size_t numberOfSelectorOfName(String& selector) {
 		BlocksNode* tmp = m_head;
-		int count = 0;
+		size_t count = 0;
 		while (tmp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
+			for (size_t i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].m_used == true) {
 					if (tmp->blocks[i].containsSelector(selector)) {
 						count++;
@@ -450,7 +450,7 @@ public:
 		delete node;
 	}
 
-	bool deleteBlock(int index) {
+	bool deleteBlock(size_t index) {
 		Block* block = getBlockByNumber(index);
 		BlocksNode* blocksNode = getBlocksNodeByBlockNumber(index);
 
@@ -470,7 +470,7 @@ public:
 		return true;
 	}
 
-	bool removeInIthBlockAttribute(int index, String& n) {
+	bool removeInIthBlockAttribute(size_t index, String& n) {
 		BlocksNode* blocksNode = getBlocksNodeByBlockNumber(index);
 		Block* block = getBlockByNumber(index);
 
@@ -497,7 +497,7 @@ public:
 		BlocksNode* tmp = m_head;
 		String result = "";
 		while (tmp != nullptr) {
-			for (int i = 0; i < ROZ; i++) {
+			for (size_t i = 0; i < ROZ; i++) {
 				if (tmp->blocks[i].m_used == true) {
 					if (tmp->blocks[i].containsSelector(z)) {
 						String s = tmp->blocks[i].getValueByProperty(Attribute(n, ""));
@@ -540,7 +540,7 @@ int main() {
 			isAtributes = false;
 			continue;
 		}
-		int k = 0;
+		size_t k = 0;
 
 		if (isSelectors) {
 
@@ -639,31 +639,31 @@ int main() {
 
 				if (command.countChar(',') == 2) {
 					if (command.contains(",S,?")) {
-						int n = atoi(command.c_str());
+						size_t n = atoi(command.c_str());
 
 						if (n == 0) {
 							command = command.cut(command.length() - 4);
-							int result = blocks.numberOfSelectorOfName(command);
+							size_t result = blocks.numberOfSelectorOfName(command);
 							std::cout << command << ",S,? == " << result << std::endl;
 						}
 						else {
-							int result = blocks.numberOfSelectorsInSection(n);
+							size_t result = blocks.numberOfSelectorsInSection(n);
 							if (result != -1) {
 								std::cout << n << ",S,? == " << result << std::endl;
 							}
 						}
 					}
 					else if (command.contains(",A,?")) {
-						int n = atoi(command.c_str());
+						size_t n = atoi(command.c_str());
 
 						if (n == 0) {
 							command = command.cut(command.length() - 4);
 
-							int result = blocks.numberOfAttributesOfName(command);
+							size_t result = blocks.numberOfAttributesOfName(command);
 							std::cout << command << ",A,? == " << result << std::endl;
 						}
 						else {
-							int result = blocks.numberOfAtributesInSection(n);
+							size_t result = blocks.numberOfAtributesInSection(n);
 							if (result != 0) {
 								std::cout << n << ",A,? == " << result << std::endl;
 							}
@@ -671,8 +671,8 @@ int main() {
 					}
 					else if (command.contains(",S,")) {
 
-						int i = atoi(command.c_str());
-						int j = atoi(command.c_str() + command.find(",") + 3);
+						size_t i = atoi(command.c_str());
+						size_t j = atoi(command.c_str() + command.find(",") + 3);
 						String result = blocks.findSelectorInBlock(i, j);
 
 						if (result.length() > 0) {
@@ -681,7 +681,7 @@ int main() {
 					}
 					else if (command.contains(",A,")) {
 
-						int i = atoi(command.c_str());
+						size_t i = atoi(command.c_str());
 						String n = command.c_str() + command.find(",") + 3;
 						String result = blocks.findValueInSectionByPropertyName(i, n);
 
@@ -702,14 +702,14 @@ int main() {
 						}
 					}
 					else if (command.contains(",D,*")) {
-						int i = atoi(command.c_str());
+						size_t i = atoi(command.c_str());
 
 						if (blocks.deleteBlock(i)) {
 							std::cout << i << ",D,*" << " == deleted" << std::endl;
 						}
 					}
 					else if (command.contains(",D,")) {
-						int i = atoi(command.c_str());
+						size_t i = atoi(command.c_str());
 						String n = command.c_str() + command.find(",") + 3;
 
 						if (blocks.removeInIthBlockAttribute(i, n)) {
