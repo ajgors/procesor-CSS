@@ -9,7 +9,7 @@ struct Attribute {
 	String value;
 
 	Attribute()
-		:property(""), value("")
+		:property(), value()
 	{
 	}
 
@@ -49,10 +49,12 @@ class List {
 
 private:
 	ListNode<T>* head;
+	ListNode<T>* tail;
+	int size;
 public:
 
 	List()
-		: head(nullptr)
+		: head(nullptr), tail(nullptr), size(0)
 	{
 	}
 
@@ -66,23 +68,21 @@ public:
 		head = nullptr;
 	}
 
-	void addAtEnd(const T& data) {
-
+	void add(const T& data) {
 		if (head == nullptr) {
 			head = new ListNode<T>(data);
+			tail = head;
 		}
 		else {
-			ListNode<T>* temp = head;
-			while (temp->next != nullptr) {
-				temp = temp->next;
-			}
-			temp->next = new ListNode<T>(data);
+			ListNode<T>* temp = new ListNode<T>(data);
+			tail->next = temp;
+			tail = temp;
 		}
+		size++;
 	}
 
 	void print() {
 		ListNode<T>* temp = head;
-
 		while (temp != nullptr) {
 			std::cout << temp->data << ", ";
 			temp = temp->next;
@@ -90,14 +90,8 @@ public:
 		std::cout << std::endl;
 	}
 
-	int getLength() {
-		ListNode<T>* temp = head;
-		int len = 0;
-		while (temp != nullptr) {
-			len++;
-			temp = temp->next;
-		}
-		return len;
+	int getSize() {
+		return size;
 	}
 
 	T* findByName(T a);
@@ -108,12 +102,12 @@ public:
 		ListNode<T>* temp = head;
 		int i = 0;
 		while (temp != nullptr) {
-			if (i == number)
+			if (i == number) {
 				return &temp->data;
+			}
 			temp = temp->next;
 			i++;
 		}
-
 		return nullptr;
 	}
 };
@@ -137,6 +131,7 @@ bool List<Attribute>::remove(Attribute a) {
 	if (head->data.property == a.property) {
 		delete head;
 		head = t;
+		size--;
 		return true;
 	}
 
@@ -146,6 +141,7 @@ bool List<Attribute>::remove(Attribute a) {
 
 			temp->next = temp->next->next;
 			delete temp2;
+			size--;
 			return true;
 		}
 		temp = temp->next;
@@ -161,18 +157,21 @@ bool List<String>::remove(String a) {
 	if (temp->data == a) {
 		head = head->next;
 		delete temp;
+		size--;
 		return true;
 	}
 
 	while (temp->next != nullptr) {
 		if (temp->next->data == a) {
 			temp = temp->next->next;
+			size--;
 			delete temp->next;
+			return true;
 		}
 		temp = temp->next;
 	}
 
-	return true;
+	return false;
 }
 
 
@@ -219,20 +218,20 @@ public:
 			k->value = a.value;
 		}
 		else {
-			attributes.addAtEnd(a);
+			attributes.add(a);
 		}
 	}
 
 	void addSelector(String& selector) {
-		selectors.addAtEnd(selector);
+		selectors.add(selector);
 	}
 
 	size_t getSelectorsNumber() {
-		return selectors.getLength();
+		return selectors.getSize();
 	}
 
 	size_t getAtributesNumber() {
-		return attributes.getLength();
+		return attributes.getSize();
 	}
 
 	void print() {
@@ -311,10 +310,11 @@ class ListDoublyLinked {
 
 private:
 	BlocksNode* head;
+	BlocksNode* tail;
 public:
 
 	ListDoublyLinked()
-		:head(nullptr)
+		:head(nullptr), tail(nullptr)
 	{
 	}
 
@@ -377,25 +377,20 @@ public:
 
 		if (head == nullptr) {
 			head = new BlocksNode;
+			tail = head;
 		}
-
-		BlocksNode* temp = head;
-		while (temp->size >= ROZ) {
-			if (temp->next == nullptr) {
-				BlocksNode* t = new BlocksNode();
-				t->prev = temp;
-				temp->next = t;
-				temp = t;
-			}
-			else {
-				temp = temp->next;
-			}
+		
+		if (tail->size >= ROZ) {
+			BlocksNode* t = new BlocksNode();
+			t->prev = tail;
+			tail->next = t;
+			tail = t;
 		}
-
-		temp->blocks[temp->size] = block;
-		temp->blocks[temp->size].used = true;
-		temp->size++;
-		temp->usedCount++;
+		
+		tail->blocks[tail->size] = block;
+		tail->blocks[tail->size].used = true;
+		tail->size++;
+		tail->usedCount++;
 	}
 
 	size_t numberOfSections() {
