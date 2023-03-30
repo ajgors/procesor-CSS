@@ -27,8 +27,6 @@ struct Attribute {
 
 template<typename T>
 struct ListNode {
-
-public:
 	T data;
 	ListNode* next;
 
@@ -48,41 +46,41 @@ template<typename T>
 class List {
 
 private:
-	ListNode<T>* head;
-	ListNode<T>* tail;
-	int size;
+	ListNode<T>* m_head;
+	ListNode<T>* m_tail;
+	size_t m_size;
 public:
 
 	List()
-		: head(nullptr), tail(nullptr), size(0)
+		: m_head(nullptr), m_tail(nullptr), m_size(0)
 	{
 	}
 
 	~List() {
-		ListNode<T>* temp = head;
+		ListNode<T>* temp = m_head;
 		while (temp != nullptr) {
 			ListNode<T>* next = temp->next;
 			delete temp;
 			temp = next;
 		}
-		head = nullptr;
+		m_head = nullptr;
 	}
 
 	void add(const T& data) {
-		if (head == nullptr) {
-			head = new ListNode<T>(data);
-			tail = head;
+		if (m_head == nullptr) {
+			m_head = new ListNode<T>(data);
+			m_tail = m_head;
 		}
 		else {
 			ListNode<T>* temp = new ListNode<T>(data);
-			tail->next = temp;
-			tail = temp;
+			m_tail->next = temp;
+			m_tail = temp;
 		}
-		size++;
+		m_size++;
 	}
 
 	void print() {
-		ListNode<T>* temp = head;
+		ListNode<T>* temp = m_head;
 		while (temp != nullptr) {
 			std::cout << temp->data << ", ";
 			temp = temp->next;
@@ -91,7 +89,7 @@ public:
 	}
 
 	int getSize() {
-		return size;
+		return m_size;
 	}
 
 	T* findByName(T a);
@@ -99,7 +97,7 @@ public:
 	bool remove(T a);
 
 	T* getElementByNumber(int number) {
-		ListNode<T>* temp = head;
+		ListNode<T>* temp = m_head;
 		int i = 0;
 		while (temp != nullptr) {
 			if (i == number) {
@@ -114,7 +112,7 @@ public:
 
 template<>
 Attribute* List<Attribute>::findByName(Attribute a) {
-	ListNode<Attribute>* temp = head;
+	ListNode<Attribute>* temp = m_head;
 	while (temp != nullptr) {
 		if (temp->data.property == a.property)
 			return &temp->data;
@@ -125,23 +123,22 @@ Attribute* List<Attribute>::findByName(Attribute a) {
 
 template<>
 bool List<Attribute>::remove(Attribute a) {
-	ListNode<Attribute>* temp = head;
-	ListNode<Attribute>* t = head->next;
+	ListNode<Attribute>* temp = m_head;
 
-	if (head->data.property == a.property) {
-		delete head;
-		head = t;
-		size--;
+	if (m_head->data.property == a.property) {
+		m_head = m_head->next;
+		delete temp;
+		m_size--;
 		return true;
 	}
 
 	while (temp->next != nullptr) {
 		if (temp->next->data.property == a.property) {
-			ListNode<Attribute>* temp2 = temp->next;
+			ListNode<Attribute>* tempNext = temp->next;
 
 			temp->next = temp->next->next;
-			delete temp2;
-			size--;
+			delete tempNext;
+			m_size--;
 			return true;
 		}
 		temp = temp->next;
@@ -149,35 +146,10 @@ bool List<Attribute>::remove(Attribute a) {
 
 	return false;
 }
-
-
-template<>
-bool List<String>::remove(String a) {
-	ListNode<String>* temp = head;
-	if (temp->data == a) {
-		head = head->next;
-		delete temp;
-		size--;
-		return true;
-	}
-
-	while (temp->next != nullptr) {
-		if (temp->next->data == a) {
-			temp = temp->next->next;
-			size--;
-			delete temp->next;
-			return true;
-		}
-		temp = temp->next;
-	}
-
-	return false;
-}
-
 
 template<>
 String* List<String>::findByName(String a) {
-	ListNode<String>* temp = head;
+	ListNode<String>* temp = m_head;
 	while (temp != nullptr) {
 		if (temp->data == a)
 			return &(temp->data);
@@ -190,60 +162,60 @@ String* List<String>::findByName(String a) {
 class Block {
 
 private:
-	List<String> selectors;
-	List<Attribute> attributes;
+	List<String> m_selectors;
+	List<Attribute> m_attributes;
 public:
-	bool used;
+	bool m_used;
 
 	Block()
-		:used(false)
+		:m_used(false)
 	{
 	}
 
 	Block(const Block& other)
-		: selectors(other.selectors), attributes(other.attributes), used(other.used)
+		: m_selectors(other.m_selectors), m_attributes(other.m_attributes), m_used(other.m_used)
 	{
 	}
 
 	Block& operator=(const Block& b) {
-		selectors = b.selectors;
-		attributes = b.attributes;
-		used = b.used;
+		m_selectors = b.m_selectors;
+		m_attributes = b.m_attributes;
+		m_used = b.m_used;
 		return *this;
 	}
 
 	void addAttribute(const Attribute& a) {
-		Attribute* k = attributes.findByName(a);
+		Attribute* k = m_attributes.findByName(a);
 		if (k != nullptr) {
 			k->value = a.value;
 		}
 		else {
-			attributes.add(a);
+			m_attributes.add(a);
 		}
 	}
 
 	void addSelector(String& selector) {
-		selectors.add(selector);
+		m_selectors.add(selector);
 	}
 
 	size_t getSelectorsNumber() {
-		return selectors.getSize();
+		return m_selectors.getSize();
 	}
 
 	size_t getAtributesNumber() {
-		return attributes.getSize();
+		return m_attributes.getSize();
 	}
 
 	void print() {
 		std::cout << "Selectors: ";
-		selectors.print();
+		m_selectors.print();
 		std::cout << "Attributes: ";
-		attributes.print();
+		m_attributes.print();
 	}
 
 	String getSelectorByNumber(int i) {
 
-		String* ptr = selectors.getElementByNumber(i - 1);
+		String* ptr = m_selectors.getElementByNumber(i - 1);
 
 		if (ptr == nullptr) {
 			return "";
@@ -252,7 +224,7 @@ public:
 	}
 
 	String getValueByProperty(const Attribute& att) {
-		Attribute* ptr = attributes.findByName(att);
+		Attribute* ptr = m_attributes.findByName(att);
 		if (ptr == nullptr) {
 			return "";
 		}
@@ -260,29 +232,27 @@ public:
 	}
 
 	bool containsAttribute(String& property) {
-		Attribute* ptr = attributes.findByName(Attribute(property, ""));
+		Attribute* ptr = m_attributes.findByName(Attribute(property, ""));
 		return ptr == nullptr ? false : true;
 	}
 
 	bool containsSelector(String& selector) {
-		String* ptr = selectors.findByName(selector);
+		String* ptr = m_selectors.findByName(selector);
 		return ptr == nullptr ? false : true;
 	}
 
 	void deleteAll() {
-		selectors.~List();
-		attributes.~List();
+		m_selectors.~List();
+		m_attributes.~List();
 	}
 
 	bool removeAttribute(String& n) {
-		return attributes.remove(Attribute(n, ""));
+		return m_attributes.remove(Attribute(n, ""));
 	}
 };
 
 
 struct BlocksNode {
-
-public:
 	Block* blocks;
 	BlocksNode* next;
 	BlocksNode* prev;
@@ -309,17 +279,18 @@ public:
 class ListDoublyLinked {
 
 private:
-	BlocksNode* head;
-	BlocksNode* tail;
+	BlocksNode* m_head;
+	BlocksNode* m_tail;
+	size_t m_size;
 public:
 
 	ListDoublyLinked()
-		:head(nullptr), tail(nullptr)
+		:m_head(nullptr), m_tail(nullptr), m_size(0)
 	{
 	}
 
 	~ListDoublyLinked() {
-		BlocksNode* temp = head;
+		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			delete[] temp->blocks;
 			temp = temp->next;
@@ -327,10 +298,10 @@ public:
 	}
 
 	void printBlocks() {
-		BlocksNode* temp = head;
+		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
-				if (temp->blocks[i].used == true) {
+				if (temp->blocks[i].m_used == true) {
 					temp->blocks[i].print();
 				}
 			}
@@ -339,7 +310,7 @@ public:
 	}
 
 	BlocksNode* getBlocksNodeByBlockNumber(int n) {
-		BlocksNode* temp = head;
+		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			if (n > temp->usedCount) {
 				n -= temp->usedCount;
@@ -353,14 +324,14 @@ public:
 	}
 
 	Block* getBlockByNumber(int n) {
-		BlocksNode* temp = head;
+		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			if (n > temp->usedCount) {
 				n -= temp->usedCount;
 			}
 			else {
 				for (int i = 0, c = 0; i < ROZ; i++) {
-					if (temp->blocks[i].used == true) {
+					if (temp->blocks[i].m_used == true) {
 						c++;
 					}
 					if (n == c) {
@@ -375,34 +346,27 @@ public:
 
 	void addBlock(Block& block) {
 
-		if (head == nullptr) {
-			head = new BlocksNode;
-			tail = head;
+		if (m_head == nullptr) {
+			m_head = new BlocksNode;
+			m_tail = m_head;
 		}
 		
-		if (tail->size >= ROZ) {
+		if (m_tail->size >= ROZ) {
 			BlocksNode* t = new BlocksNode();
-			t->prev = tail;
-			tail->next = t;
-			tail = t;
+			t->prev = m_tail;
+			m_tail->next = t;
+			m_tail = t;
 		}
 		
-		tail->blocks[tail->size] = block;
-		tail->blocks[tail->size].used = true;
-		tail->size++;
-		tail->usedCount++;
+		m_tail->blocks[m_tail->size] = block;
+		m_tail->blocks[m_tail->size].m_used = true;
+		m_tail->size++;
+		m_tail->usedCount++;
+		m_size++;
 	}
 
-	size_t numberOfSections() {
-		size_t result = 0;
-		BlocksNode* tmp = head;
-
-		while (tmp != nullptr) {
-			result += tmp->usedCount;
-			tmp = tmp->next;
-		}
-
-		return result;
+	size_t getSize() {
+		return m_size;
 	}
 
 	int numberOfSelectorsInSection(int n) {
@@ -439,11 +403,11 @@ public:
 	}
 
 	int numberOfAttributesOfName(String& property) {
-		BlocksNode* tmp = head;
+		BlocksNode* tmp = m_head;
 		int count = 0;
 		while (tmp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].used == true) {
+				if (tmp->blocks[i].m_used == true) {
 					if (tmp->blocks[i].containsAttribute(property)) {
 						count++;
 					}
@@ -455,11 +419,11 @@ public:
 	};
 
 	int numberOfSelectorOfName(String& selector) {
-		BlocksNode* tmp = head;
+		BlocksNode* tmp = m_head;
 		int count = 0;
 		while (tmp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].used == true) {
+				if (tmp->blocks[i].m_used == true) {
 					if (tmp->blocks[i].containsSelector(selector)) {
 						count++;
 					}
@@ -477,8 +441,8 @@ public:
 		if (node->next != nullptr) {
 			node->next->prev = node->prev;
 		}
-		if (node == head) {
-			head = node->next;
+		if (node == m_head) {
+			m_head = node->next;
 		}
 		else {
 			node->prev->next = node->next;
@@ -494,8 +458,9 @@ public:
 			return false;
 		}
 
-		block->used = false;
+		block->m_used = false;
 		blocksNode->usedCount--;
+		m_size--;
 		block->deleteAll();
 
 		if (blocksNode->usedCount == 0) {
@@ -516,7 +481,8 @@ public:
 		if (!block->removeAttribute(n)) return false;
 
 		if (block->getAtributesNumber() == 0) {
-			block->used = false;
+			block->m_used = false;
+			m_size--;
 			blocksNode->usedCount--;
 			block->deleteAll();
 		}
@@ -528,11 +494,11 @@ public:
 	};
 
 	String findAttrForSelector(String& z, String& n) {
-		BlocksNode* tmp = head;
+		BlocksNode* tmp = m_head;
 		String result = "";
 		while (tmp != nullptr) {
 			for (int i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].used == true) {
+				if (tmp->blocks[i].m_used == true) {
 					if (tmp->blocks[i].containsSelector(z)) {
 						String s = tmp->blocks[i].getValueByProperty(Attribute(n, ""));
 						if (s.length() > 0) {
@@ -556,10 +522,10 @@ int main() {
 	bool isCommands = false;
 	bool isProperty = true;
 	String input;
-	String selector = "";
-	String property = "";
-	String value = "";
-	String command = "";
+	String selector;
+	String property;
+	String value;
+	String command;
 	while (std::cin >> input) {
 
 		if (input == "????") {
@@ -657,8 +623,7 @@ int main() {
 		else if (isCommands) {
 
 			if (input == "?") {
-				int number = blocks.numberOfSections();
-				std::cout << "? == " << number << std::endl;
+				std::cout << "? == " << blocks.getSize() << std::endl;
 			}
 			else if (input == ".") {
 				blocks.printBlocks();
