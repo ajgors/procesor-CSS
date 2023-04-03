@@ -6,14 +6,14 @@ void String::resize() {
 	if (m_length >= m_capacity) {
 		m_capacity = 2 * m_length;
 		char* new_string = new char[m_capacity]();
-		memcpy(new_string, m_string, m_capacity);
+		memcpy(new_string, m_string, m_length);
 		delete[] m_string;
 		m_string = new_string;
 	}
 	else if (m_length < m_capacity / 2 && m_length > 1) {
 		m_capacity /= 2;
 		char* new_string = new char[m_capacity]();
-		memcpy(new_string, m_string, m_capacity);
+		memcpy(new_string, m_string, m_length);
 		delete[] m_string;
 		m_string = new_string;
 	}

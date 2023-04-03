@@ -165,22 +165,16 @@ private:
 	List<String> m_selectors;
 	List<Attribute> m_attributes;
 public:
-	bool m_used;
-
-	Block()
-		:m_used(false)
-	{
-	}
+	Block() {};
 
 	Block(const Block& other)
-		: m_selectors(other.m_selectors), m_attributes(other.m_attributes), m_used(other.m_used)
+		: m_selectors(other.m_selectors), m_attributes(other.m_attributes)
 	{
 	}
 
 	Block& operator=(const Block& b) {
 		m_selectors = b.m_selectors;
 		m_attributes = b.m_attributes;
-		m_used = b.m_used;
 		return *this;
 	}
 
@@ -241,11 +235,6 @@ public:
 		return ptr == nullptr ? false : true;
 	}
 
-	void deleteAll() {
-		m_selectors.~List();
-		m_attributes.~List();
-	}
-
 	bool removeAttribute(String& n) {
 		return m_attributes.remove(Attribute(n, ""));
 	}
@@ -253,25 +242,20 @@ public:
 
 
 struct BlocksNode {
-	Block* blocks;
+	Block* blocks[ROZ] = {};
 	BlocksNode* next;
 	BlocksNode* prev;
 	size_t size;
 	size_t usedCount;
 
 	BlocksNode()
-		:blocks(new Block[ROZ]), next(nullptr), prev(nullptr), size(0), usedCount(0)
+		: next(nullptr), prev(nullptr), size(0), usedCount(0)
 	{
 	}
 
 	BlocksNode(const BlocksNode& other)
-		:blocks(other.blocks), next(other.next), prev(other.prev), size(other.size), usedCount(other.usedCount)
+		:next(other.next), prev(other.prev), size(other.size), usedCount(other.usedCount)
 	{
-	}
-
-	~BlocksNode()
-	{
-		delete[] blocks;
 	}
 };
 
@@ -290,10 +274,12 @@ public:
 	}
 
 	~ListDoublyLinked() {
+
 		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
-			delete[] temp->blocks;
-			temp = temp->next;
+			BlocksNode* next = temp->next;
+			delete temp;
+			temp = next;
 		}
 	}
 
@@ -301,8 +287,8 @@ public:
 		BlocksNode* temp = m_head;
 		while (temp != nullptr) {
 			for (size_t i = 0; i < ROZ; i++) {
-				if (temp->blocks[i].m_used == true) {
-					temp->blocks[i].print();
+				if (temp->blocks[i] != nullptr) {
+					temp->blocks[i]->print();
 				}
 			}
 			temp = temp->next;
@@ -331,11 +317,11 @@ public:
 			}
 			else {
 				for (size_t i = 0, c = 0; i < ROZ; i++) {
-					if (temp->blocks[i].m_used == true) {
+					if (temp->blocks[i] != nullptr) {
 						c++;
 					}
 					if (n == c) {
-						return &temp->blocks[i];
+						return temp->blocks[i];
 					}
 				}
 			}
@@ -350,16 +336,15 @@ public:
 			m_head = new BlocksNode;
 			m_tail = m_head;
 		}
-		
+
 		if (m_tail->size >= ROZ) {
 			BlocksNode* t = new BlocksNode();
 			t->prev = m_tail;
 			m_tail->next = t;
 			m_tail = t;
 		}
-		
-		m_tail->blocks[m_tail->size] = block;
-		m_tail->blocks[m_tail->size].m_used = true;
+
+		m_tail->blocks[m_tail->size] = &block;
 		m_tail->size++;
 		m_tail->usedCount++;
 		m_size++;
@@ -369,7 +354,7 @@ public:
 		return m_size;
 	}
 
-	size_t numberOfSelectorsInSection(size_t n) {
+	int numberOfSelectorsInSection(size_t n) {
 		Block* tmp = getBlockByNumber(n);
 		if (tmp == nullptr) {
 			return -1;
@@ -407,8 +392,8 @@ public:
 		size_t count = 0;
 		while (tmp != nullptr) {
 			for (size_t i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].m_used == true) {
-					if (tmp->blocks[i].containsAttribute(property)) {
+				if (tmp->blocks[i] != nullptr){
+					if (tmp->blocks[i]->containsAttribute(property)) {
 						count++;
 					}
 				}
@@ -423,8 +408,8 @@ public:
 		size_t count = 0;
 		while (tmp != nullptr) {
 			for (size_t i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].m_used == true) {
-					if (tmp->blocks[i].containsSelector(selector)) {
+				if (tmp->blocks[i] != nullptr){
+					if (tmp->blocks[i]->containsSelector(selector)) {
 						count++;
 					}
 				}
@@ -450,6 +435,14 @@ public:
 		delete node;
 	}
 
+	void setBlockToNullptr(BlocksNode* blocksNode, Block* block) {
+		for (int i = 0; i < ROZ; i++) {
+			if (blocksNode->blocks[i] == block) {
+				blocksNode->blocks[i] = nullptr;
+			}
+		}
+	}
+
 	bool deleteBlock(size_t index) {
 		Block* block = getBlockByNumber(index);
 		BlocksNode* blocksNode = getBlocksNodeByBlockNumber(index);
@@ -458,10 +451,10 @@ public:
 			return false;
 		}
 
-		block->m_used = false;
 		blocksNode->usedCount--;
 		m_size--;
-		block->deleteAll();
+		setBlockToNullptr(blocksNode, block);
+		delete block;
 
 		if (blocksNode->usedCount == 0) {
 			DeleteNode(blocksNode);
@@ -481,10 +474,10 @@ public:
 		if (!block->removeAttribute(n)) return false;
 
 		if (block->getAtributesNumber() == 0) {
-			block->m_used = false;
 			m_size--;
 			blocksNode->usedCount--;
-			block->deleteAll();
+			setBlockToNullptr(blocksNode, block);
+			delete block;
 		}
 
 		if (blocksNode->usedCount == 0) {
@@ -498,12 +491,11 @@ public:
 		String result = "";
 		while (tmp != nullptr) {
 			for (size_t i = 0; i < ROZ; i++) {
-				if (tmp->blocks[i].m_used == true) {
-					if (tmp->blocks[i].containsSelector(z)) {
-						String s = tmp->blocks[i].getValueByProperty(Attribute(n, ""));
-						if (s.length() > 0) {
-							result = s;
-						}
+				if (tmp->blocks[i] == nullptr) continue;
+				if (tmp->blocks[i]->containsSelector(z)) {
+					String s = tmp->blocks[i]->getValueByProperty(Attribute(n, ""));
+					if (s.length() > 0) {
+						result = s;
 					}
 				}
 			}
@@ -594,7 +586,7 @@ int main() {
 					else {
 						delete block;
 					}
-					
+
 					block = new Block();
 					break;
 				}
@@ -647,7 +639,7 @@ int main() {
 							std::cout << command << ",S,? == " << result << std::endl;
 						}
 						else {
-							size_t result = blocks.numberOfSelectorsInSection(n);
+							int result = blocks.numberOfSelectorsInSection(n);
 							if (result != -1) {
 								std::cout << n << ",S,? == " << result << std::endl;
 							}
